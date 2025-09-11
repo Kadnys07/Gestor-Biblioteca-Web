@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo - Gestor de Biblioteca</title>
+    
+    <!-- Tailwind CSS para estilização rápida -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Biblioteca de Ícones (Phosphor Icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Fonte Inter do Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilo base para a fonte e transições suaves */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Esconde todas as "páginas" por padrão */
+        .page {
+            display: none;
+        }
+        /* Mostra a página ativa */
+        .page.active {
+            display: flex; /* Usamos flex para facilitar o alinhamento */
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Tela de Login (Página Inicial) -->
+    <div id="login-page" class="page active items-center justify-center h-screen bg-gray-200">
+        <div class="w-full max-w-md p-8 space-y-8 bg-white rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold text-center text-gray-800">Gestor de Biblioteca</h2>
+            <p class="text-center text-gray-500">Faça login para continuar</p>
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="email" class="text-sm font-medium text-gray-700">Email</label>
+                    <input id="email" name="email" type="email" required class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" value="gestor@biblioteca.com">
+                </div>
+                <div>
+                    <label for="senha" class="text-sm font-medium text-gray-700">Senha</label>
+                    <input id="senha" name="senha" type="password" required class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" value="123456">
+                </div>
+                <button type="submit" class="w-full px-4 py-2 font-semibold text-white bg-green-700 rounded-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                    Entrar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Layout Principal da Aplicação (escondido inicialmente) -->
+    <div id="app-layout" class="hidden">
+        <div class="flex h-screen bg-gray-100">
+            <!-- Sidebar (Menu Lateral) -->
+            <aside class="w-64 flex-shrink-0 bg-green-800 text-white flex flex-col">
+                <div class="h-16 flex items-center justify-center text-2xl font-bold">
+                    <i class="ph-bold ph-books mr-2"></i>
+                    Gestor
+                </div>
+                <nav class="flex-1 px-4 py-4 space-y-2">
+                    <a href="#" onclick="showPage('home-page')" class="flex items-center px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                        <i class="ph-bold ph-house mr-3"></i> Home
+                    </a>
+                    <a href="#" onclick="showPage('livros-page')" class="flex items-center px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                        <i class="ph-bold ph-book-open mr-3"></i> Livros
+                    </a>
+                    <a href="#" onclick="showPage('leitores-page')" class="flex items-center px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                        <i class="ph-bold ph-users-three mr-3"></i> Leitores
+                    </a>
+                    <a href="#" onclick="showPage('emprestimos-page')" class="flex items-center px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                        <i class="ph-bold ph-arrows-left-right mr-3"></i> Empréstimos
+                    </a>
+                     <a href="#" onclick="showPage('relatorios-page')" class="flex items-center px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                        <i class="ph-bold ph-chart-bar mr-3"></i> Relatórios
+                    </a>
+                </nav>
+                <div class="p-4 border-t border-green-700">
+                    <a href="#" onclick="logout()" class="flex items-center px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                        <i class="ph-bold ph-sign-out mr-3"></i> Sair
+                    </a>
+                </div>
+            </aside>
+
+            <!-- Área de Conteúdo Principal -->
+            <main class="flex-1 p-6 overflow-y-auto">
+                <!-- Página Home -->
+                <div id="home-page" class="page flex-col">
+                    <h1 class="text-3xl font-bold text-gray-800">Bem-vindo, Gestor!</h1>
+                    <p class="mt-2 text-gray-600">Selecione uma opção no menu ao lado para começar.</p>
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div onclick="showPage('livros-page')" class="p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow cursor-pointer text-center">
+                            <i class="ph-bold ph-book-open text-5xl text-green-600"></i>
+                            <h3 class="mt-4 text-xl font-semibold text-gray-800">Gerenciar Livros</h3>
+                        </div>
+                        <div onclick="showPage('leitores-page')" class="p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow cursor-pointer text-center">
+                            <i class="ph-bold ph-users-three text-5xl text-blue-600"></i>
+                            <h3 class="mt-4 text-xl font-semibold text-gray-800">Gerenciar Leitores</h3>
+                        </div>
+                        <div onclick="showPage('emprestimos-page')" class="p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow cursor-pointer text-center">
+                            <i class="ph-bold ph-arrows-left-right text-5xl text-yellow-600"></i>
+                            <h3 class="mt-4 text-xl font-semibold text-gray-800">Gerenciar Empréstimos</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Página de Livros -->
+                <div id="livros-page" class="page flex-col">
+                    <div class="flex justify-between items-center mb-6">
+                        <h1 class="text-3xl font-bold text-gray-800">Acervo de Livros</h1>
+                        <button onclick="showPage('livro-form-page')" class="flex items-center px-4 py-2 font-semibold text-white bg-green-700 rounded-md hover:bg-green-800 transition-colors">
+                            <i class="ph-bold ph-plus mr-2"></i> Adicionar Livro
+                        </button>
+                    </div>
+                    <div class="mb-4 flex space-x-4">
+                        <input type="search" id="livro-search" placeholder="Pesquisar por título ou autor..." class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <select id="livro-status-filter" class="px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="todos">Todos</option>
+                            <option value="disponivel">Disponíveis</option>
+                            <option value="indisponivel">Indisponíveis</option>
+                        </select>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <table class="w-full text-left" id="tabela-livros">
+                            <thead class="border-b-2 border-gray-200">
+                                <tr>
+                                    <th class="p-3">Título</th>
+                                    <th class="p-3">Autor</th>
+                                    <th class="p-3">Gênero</th>
+                                    <th class="p-3">Disponível</th>
+                                    <th class="p-3">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-gray-100" data-status="disponivel" data-search="o senhor dos anéis j.r.r. tolkien">
+                                    <td class="p-3">O Senhor dos Anéis</td>
+                                    <td class="p-3">J.R.R. Tolkien</td>
+                                    <td class="p-3">Fantasia</td>
+                                    <td class="p-3">3</td>
+                                    <td class="p-3"><i class="ph ph-pencil-simple cursor-pointer text-blue-600 hover:text-blue-800" title="Editar Livro" onclick="openEditLivroModal(1, 'O Senhor dos Anéis', 'J.R.R. Tolkien', 'Fantasia', 3)"></i></td>
+                                </tr>
+                                <tr class="border-b border-gray-100" data-status="indisponivel" data-search="1984 george orwell">
+                                    <td class="p-3">1984</td>
+                                    <td class="p-3">George Orwell</td>
+                                    <td class="p-3">Ficção Científica</td>
+                                    <td class="p-3"><span class="px-2 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full">Indisponível</span></td>
+                                    <td class="p-3"><i class="ph ph-pencil-simple cursor-pointer text-blue-600 hover:text-blue-800" title="Editar Livro" onclick="openEditLivroModal(2, '1984', 'George Orwell', 'Ficção Científica', 0)"></i></td>
+                                </tr>
+                                <tr class="border-b border-gray-100" data-status="disponivel" data-search="duna frank herbert">
+                                    <td class="p-3">Duna</td>
+                                    <td class="p-3">Frank Herbert</td>
+                                    <td class="p-3">Ficção Científica</td>
+                                    <td class="p-3">1</td>
+                                    <td class="p-3"><i class="ph ph-pencil-simple cursor-pointer text-blue-600 hover:text-blue-800" title="Editar Livro" onclick="openEditLivroModal(3, 'Duna', 'Frank Herbert', 'Ficção Científica', 1)"></i></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Página de Leitores -->
+                <div id="leitores-page" class="page flex-col">
+                     <div class="flex justify-between items-center mb-6">
+                        <h1 class="text-3xl font-bold text-gray-800">Cadastro de Leitores</h1>
+                        <button onclick="showPage('leitor-form-page')" class="flex items-center px-4 py-2 font-semibold text-white bg-blue-700 rounded-md hover:bg-blue-800 transition-colors">
+                            <i class="ph-bold ph-plus mr-2"></i> Adicionar Leitor
+                        </button>
+                    </div>
+                    <div class="mb-4 flex">
+                        <input type="search" id="leitor-search" placeholder="Pesquisar por nome, email ou CPF..." class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <table class="w-full text-left" id="tabela-leitores">
+                            <thead class="border-b-2 border-gray-200">
+                                <tr>
+                                    <th class="p-3">Nome</th>
+                                    <th class="p-3">CPF</th>
+                                    <th class="p-3">Email</th>
+                                    <th class="p-3">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-gray-100" data-search="ana silva ana.silva@email.com 111.222.333-44">
+                                    <td class="p-3">Ana Silva</td>
+                                    <td class="p-3">111.222.333-44</td>
+                                    <td class="p-3">ana.silva@email.com</td>
+                                    <td class="p-3 flex space-x-2"><i class="ph ph-pencil-simple cursor-pointer text-blue-600 hover:text-blue-800" title="Editar Leitor" onclick="openEditLeitorModal(1, 'Ana Silva', '111.222.333-44', '1990-05-15', '(47) 99999-1111', 'ana.silva@email.com', '89222-000', 'Rua das Flores, 123')"></i></td>
+                                </tr>
+                                <tr class="border-b border-gray-100" data-search="bruno costa bruno.costa@email.com 222.333.444-55">
+                                    <td class="p-3">Bruno Costa</td>
+                                    <td class="p-3">222.333.444-55</td>
+                                    <td class="p-3">bruno.costa@email.com</td>
+                                    <td class="p-3 flex space-x-2"><i class="ph ph-pencil-simple cursor-pointer text-blue-600 hover:text-blue-800" title="Editar Leitor" onclick="openEditLeitorModal(2, 'Bruno Costa', '222.333.444-55', '1988-10-20', '(47) 99999-2222', 'bruno.costa@email.com', '89222-010', 'Avenida Principal, 456')"></i></td>
+                                </tr>
+                                <tr class="border-b border-gray-100" data-search="carla mendes carla.mendes@email.com 333.444.555-66">
+                                    <td class="p-3">Carla Mendes</td>
+                                    <td class="p-3">333.444.555-66</td>
+                                    <td class="p-3">carla.mendes@email.com</td>
+                                    <td class="p-3 flex space-x-2"><i class="ph ph-pencil-simple cursor-pointer text-blue-600 hover:text-blue-800" title="Editar Leitor" onclick="openEditLeitorModal(3, 'Carla Mendes', '333.444.555-66', '1995-02-25', '(47) 99999-3333', 'carla.mendes@email.com', '89222-020', 'Travessa das Palmeiras, 789')"></i></td>
+                                </tr>
+                                <tr class="border-b border-gray-100" data-search="daniel oliveira daniel.oliveira@email.com 444.555.666-77">
+                                    <td class="p-3">Daniel Oliveira</td>
+                                    <td class="p-3">444.555.666-77</td>
+                                    <td class="p-3">daniel.oliveira@email.com</td>
+                                    <td class="p-3 flex space-x-2"><i class="ph ph-pencil-simple cursor-pointer text-blue-600 hover:text-blue-800" title="Editar Leitor" onclick="openEditLeitorModal(4, 'Daniel Oliveira', '444.555.666-77', '2000-12-01', '(47) 99999-4444', 'daniel.oliveira@email.com', '89222-030', 'Alameda dos Sabiás, 101')"></i></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Página de Empréstimos -->
+                <div id="emprestimos-page" class="page flex-col">
+                     <div class="flex justify-between items-center mb-6">
+                        <h1 class="text-3xl font-bold text-gray-800">Controle de Empréstimos</h1>
+                        <button onclick="showPage('emprestimo-form-page')" class="flex items-center px-4 py-2 font-semibold text-white bg-yellow-700 rounded-md hover:bg-yellow-800 transition-colors">
+                            <i class="ph-bold ph-plus mr-2"></i> Novo Empréstimo
+                        </button>
+                    </div>
+                    <div class="mb-4 flex space-x-4">
+                        <input type="search" id="emprestimo-search" placeholder="Pesquisar por livro, leitor ou CPF..." class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <select id="emprestimo-status-filter" class="px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="todos">Todos</option>
+                            <option value="pendente">Pendentes</option>
+                            <option value="devolvido">Devolvidos</option>
+                        </select>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                         <table class="w-full text-left" id="tabela-emprestimos">
+                            <thead class="border-b-2 border-gray-200">
+                                <tr>
+                                    <th class="p-3">Livro</th>
+                                    <th class="p-3">Leitor</th>
+                                    <th class="p-3">CPF do Leitor</th>
+                                    <th class="p-3">Devolução</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-gray-100" data-status="pendente" data-search="o senhor dos anéis carla mendes 333.444.555-66">
+                                    <td class="p-3">O Senhor dos Anéis</td>
+                                    <td class="p-3">Carla Mendes</td>
+                                    <td class="p-3">333.444.555-66</td>
+                                    <td class="p-3">15/08/2025</td>
+                                    <td class="p-3"><span class="px-2 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full">Pendente</span></td>
+                                    <td class="p-3"><i class="ph ph-pencil-simple cursor-pointer text-blue-600 hover:text-blue-800" title="Editar Empréstimo" onclick="openEditEmprestimoModal(1, 'O Senhor dos Anéis', 'Carla Mendes', '2025-08-01', '2025-08-15', 'pendente')"></i></td>
+                                </tr>
+                                <tr class="border-b border-gray-100" data-status="pendente" data-search="1984 daniel oliveira 444.555.666-77">
+                                    <td class="p-3">1984</td>
+                                    <td class="p-3">Daniel Oliveira</td>
+                                    <td class="p-3">444.555.666-77</td>
+                                    <td class="p-3">08/08/2025</td>
+                                    <td class="p-3"><span class="px-2 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full">Pendente</span></td>
+                                    <td class="p-3"><i class="ph ph-pencil-simple cursor-pointer text-blue-600 hover:text-blue-800" title="Editar Empréstimo" onclick="openEditEmprestimoModal(2, '1984', 'Daniel Oliveira', '2025-07-25', '2025-08-08', 'pendente')"></i></td>
+                                </tr>
+                                <tr class="border-b border-gray-100" data-status="devolvido" data-search="duna ana silva 111.222.333-44">
+                                    <td class="p-3">Duna</td>
+                                    <td class="p-3">Ana Silva</td>
+                                    <td class="p-3">111.222.333-44</td>
+                                    <td class="p-3">01/08/2025</td>
+                                    <td class="p-3"><span class="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-200 rounded-full">Devolvido</span></td>
+                                    <td class="p-3"></td>
+                                </tr>
+                                 <tr class="border-b border-gray-100" data-status="pendente" data-search="o guia do mochileiro das galáxias bruno costa 222.333.444-55">
+                                    <td class="p-3">O Guia do Mochileiro das Galáxias</td>
+                                    <td class="p-3">Bruno Costa</td>
+                                    <td class="p-3">222.333.444-55</td>
+                                    <td class="p-3">18/08/2025</td>
+                                    <td class="p-3"><span class="px-2 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full">Pendente</span></td>
+                                    <td class="p-3"><i class="ph ph-pencil-simple cursor-pointer text-blue-600 hover:text-blue-800" title="Editar Empréstimo" onclick="openEditEmprestimoModal(4, 'O Guia do Mochileiro das Galáxias', 'Bruno Costa', '2025-08-04', '2025-08-18', 'pendente')"></i></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Página de Relatórios -->
+                <div id="relatorios-page" class="page flex-col">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6">Relatórios</h1>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- Card de Total de Clientes -->
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h2 class="text-lg font-semibold text-gray-600">Total de Clientes Cadastrados</h2>
+                            <p class="text-4xl font-bold text-blue-600 mt-2" id="total-clientes-report">0</p>
+                        </div>
+                        <!-- Card de Empréstimos Pendentes -->
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h2 class="text-lg font-semibold text-gray-600">Empréstimos Pendentes</h2>
+                            <p class="text-4xl font-bold text-yellow-600 mt-2" id="pendentes-report">0</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-bold text-gray-800">Relatórios Mensais</h2>
+                        <p class="text-gray-600 mt-2 mb-4">Gere um relatório em PDF com todos os empréstimos realizados no mês atual.</p>
+                        <button onclick="gerarPDF()" class="flex items-center px-4 py-2 font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">
+                            <i class="ph-bold ph-file-pdf mr-2"></i> Gerar PDF de Empréstimos do Mês
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Formulário de Livro -->
+                <div id="livro-form-page" class="page items-center justify-center">
+                    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl">
+                        <h1 class="text-2xl font-bold text-gray-800 mb-6">Cadastro de Livro</h1>
+                        <form class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="livro-nome" class="text-sm font-medium text-gray-700">Nome</label>
+                                    <input id="livro-nome" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                                </div>
+                                <div>
+                                    <label for="livro-autor" class="text-sm font-medium text-gray-700">Autor</label>
+                                    <input id="livro-autor" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                                </div>
+                                <div>
+                                    <label for="livro-genero" class="text-sm font-medium text-gray-700">Gênero</label>
+                                    <input id="livro-genero" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                                </div>
+                                <div>
+                                    <label for="livro-qntd" class="text-sm font-medium text-gray-700">Quantidade</label>
+                                    <input id="livro-qntd" type="number" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                                </div>
+                            </div>
+                            <div class="flex space-x-4 pt-4">
+                                <button type="submit" class="w-full sm:w-auto px-6 py-2 font-semibold text-white bg-green-700 rounded-md hover:bg-green-800">Finalizar Cadastro</button>
+                                <button type="button" onclick="showPage('livros-page')" class="w-full sm:w-auto px-6 py-2 font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Formulário de Leitor -->
+                <div id="leitor-form-page" class="page items-center justify-center">
+                     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl">
+                        <h1 class="text-2xl font-bold text-gray-800 mb-6">Cadastro de Cliente</h1>
+                        <form class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="leitor-nome-completo" class="text-sm font-medium text-gray-700">Nome Completo</label>
+                                    <input id="leitor-nome-completo" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                                </div>
+                                <div>
+                                    <label for="leitor-cpf" class="text-sm font-medium text-gray-700">CPF</label>
+                                    <input id="leitor-cpf" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                                </div>
+                                <div>
+                                    <label for="leitor-nascimento" class="text-sm font-medium text-gray-700">Data de Nascimento</label>
+                                    <input id="leitor-nascimento" type="date" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                                </div>
+                                <div>
+                                    <label for="leitor-celular" class="text-sm font-medium text-gray-700">Nº Celular</label>
+                                    <input id="leitor-celular" type="tel" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                                </div>
+                                 <div>
+                                    <label for="leitor-email" class="text-sm font-medium text-gray-700">Email</label>
+                                    <input id="leitor-email" type="email" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                                </div>
+                                <div>
+                                    <label for="leitor-cep" class="text-sm font-medium text-gray-700">CEP</label>
+                                    <input id="leitor-cep" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label for="leitor-endereco" class="text-sm font-medium text-gray-700">Endereço</label>
+                                    <input id="leitor-endereco" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                                </div>
+                            </div>
+                            <div class="flex space-x-4 pt-4">
+                                <button type="submit" class="w-full sm:w-auto px-6 py-2 font-semibold text-white bg-blue-700 rounded-md hover:bg-blue-800">Salvar</button>
+                                <button type="button" onclick="showPage('leitores-page')" class="w-full sm:w-auto px-6 py-2 font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Cancelar</button>
+                            </div>
+                        </form>
+                     </div>
+                </div>
+                
+                <!-- Formulário de Empréstimo -->
+                <div id="emprestimo-form-page" class="page items-center justify-center">
+                     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl">
+                        <h1 class="text-2xl font-bold text-gray-800 mb-6">Registrar Novo Empréstimo</h1>
+                        <form class="space-y-4">
+                            <div>
+                                <label for="emprestimo-cpf" class="text-sm font-medium text-gray-700">CPF do Leitor</label>
+                                <input id="emprestimo-cpf" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md" placeholder="Digite o CPF para buscar o leitor">
+                            </div>
+                            <div>
+                                <label for="emprestimo-livro" class="text-sm font-medium text-gray-700">Livro</label>
+                                <select id="emprestimo-livro" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                                    <option>O Senhor dos Anéis</option>
+                                    <option>1984</option>
+                                    <option>Duna</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="emprestimo-data-hoje" class="text-sm font-medium text-gray-700">Data de Hoje</label>
+                                    <input id="emprestimo-data-hoje" type="date" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md bg-gray-100" readonly>
+                                </div>
+                                <div>
+                                    <label for="emprestimo-data-devolucao" class="text-sm font-medium text-gray-700">Data de Devolução</label>
+                                    <input id="emprestimo-data-devolucao" type="date" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                                </div>
+                            </div>
+                            <div class="flex space-x-4 pt-4">
+                                <button type="submit" class="w-full sm:w-auto px-6 py-2 font-semibold text-white bg-yellow-700 rounded-md hover:bg-yellow-800">Registrar</button>
+                                <button type="button" onclick="showPage('emprestimos-page')" class="w-full sm:w-auto px-6 py-2 font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Cancelar</button>
+                            </div>
+                        </form>
+                     </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Livro -->
+    <div id="edit-livro-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Editar Livro</h2>
+            <form id="edit-livro-form" class="space-y-4">
+                <input type="hidden" id="edit-livro-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="edit-livro-nome" class="text-sm font-medium text-gray-700">Nome</label>
+                        <input id="edit-livro-nome" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="edit-livro-autor" class="text-sm font-medium text-gray-700">Autor</label>
+                        <input id="edit-livro-autor" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="edit-livro-genero" class="text-sm font-medium text-gray-700">Gênero</label>
+                        <input id="edit-livro-genero" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="edit-livro-qntd" class="text-sm font-medium text-gray-700">Quantidade</label>
+                        <input id="edit-livro-qntd" type="number" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                    </div>
+                </div>
+                <div class="flex space-x-4 pt-4">
+                    <button type="submit" class="w-full sm:w-auto px-6 py-2 font-semibold text-white bg-green-700 rounded-md hover:bg-green-800">Salvar Alterações</button>
+                    <button type="button" onclick="closeEditLivroModal()" class="w-full sm:w-auto px-6 py-2 font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Leitor -->
+    <div id="edit-leitor-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+         <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Editar Cliente</h2>
+            <form id="edit-leitor-form" class="space-y-4">
+                <input type="hidden" id="edit-leitor-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="edit-leitor-nome-completo" class="text-sm font-medium text-gray-700">Nome Completo</label>
+                        <input id="edit-leitor-nome-completo" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="edit-leitor-cpf" class="text-sm font-medium text-gray-700">CPF</label>
+                        <input id="edit-leitor-cpf" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="edit-leitor-nascimento" class="text-sm font-medium text-gray-700">Data de Nascimento</label>
+                        <input id="edit-leitor-nascimento" type="date" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="edit-leitor-celular" class="text-sm font-medium text-gray-700">Nº Celular</label>
+                        <input id="edit-leitor-celular" type="tel" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                    </div>
+                     <div>
+                        <label for="edit-leitor-email" class="text-sm font-medium text-gray-700">Email</label>
+                        <input id="edit-leitor-email" type="email" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="edit-leitor-cep" class="text-sm font-medium text-gray-700">CEP</label>
+                        <input id="edit-leitor-cep" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="edit-leitor-endereco" class="text-sm font-medium text-gray-700">Endereço</label>
+                        <input id="edit-leitor-endereco" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                    </div>
+                </div>
+                <div class="flex space-x-4 pt-4">
+                    <button type="submit" class="w-full sm:w-auto px-6 py-2 font-semibold text-white bg-blue-700 rounded-md hover:bg-blue-800">Salvar Alterações</button>
+                    <button type="button" onclick="closeEditLeitorModal()" class="w-full sm:w-auto px-6 py-2 font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Cancelar</button>
+                </div>
+            </form>
+         </div>
+    </div>
+
+    <!-- Modal de Edição de Empréstimo -->
+    <div id="edit-emprestimo-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Editar Empréstimo</h2>
+            <form id="edit-emprestimo-form" class="space-y-4">
+                <div class="mb-4 p-4 bg-gray-100 rounded-md border">
+                    <p class="text-sm text-gray-600">Livro: <strong id="modal-livro-info" class="text-gray-800"></strong></p>
+                    <p class="text-sm text-gray-600 mt-1">Leitor: <strong id="modal-leitor-info" class="text-gray-800"></strong></p>
+                </div>
+                <input type="hidden" id="edit-emprestimo-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="edit-data-inicio" class="text-sm font-medium text-gray-700">Data de Início</label>
+                        <input id="edit-data-inicio" type="date" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md bg-gray-100" readonly>
+                    </div>
+                    <div>
+                        <label for="edit-data-devolucao" class="text-sm font-medium text-gray-700">Nova Data de Devolução</label>
+                        <input id="edit-data-devolucao" type="date" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                    </div>
+                </div>
+                <div>
+                    <label for="edit-status" class="text-sm font-medium text-gray-700">Status</label>
+                    <select id="edit-status" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                        <option value="pendente">Pendente</option>
+                        <option value="devolvido">Devolvido</option>
+                    </select>
+                </div>
+                <div class="flex space-x-4 pt-4">
+                    <button type="submit" class="w-full sm:w-auto px-6 py-2 font-semibold text-white bg-blue-700 rounded-md hover:bg-blue-800">Salvar Alterações</button>
+                    <button type="button" onclick="closeEditEmprestimoModal()" class="w-full sm:w-auto px-6 py-2 font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        // --- LÓGICA DE NAVEGAÇÃO ---
+        const loginPage = document.getElementById('login-page');
+        const appLayout = document.getElementById('app-layout');
+        const loginForm = document.getElementById('login-form');
+        const editEmprestimoModal = document.getElementById('edit-emprestimo-modal');
+        const editLivroModal = document.getElementById('edit-livro-modal');
+        const editLeitorModal = document.getElementById('edit-leitor-modal');
+        
+        function showPage(pageId) {
+            document.querySelectorAll('#app-layout .page').forEach(page => {
+                page.classList.remove('active');
+                page.style.display = 'none';
+            });
+            const activePage = document.getElementById(pageId);
+            if (activePage) {
+                activePage.classList.add('active');
+                activePage.style.display = 'flex';
+
+                if (pageId === 'emprestimo-form-page') {
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('emprestimo-data-hoje').value = today;
+                }
+                
+                if (pageId === 'relatorios-page') {
+                    const totalClientes = document.querySelectorAll('#tabela-leitores tbody tr').length;
+                    document.getElementById('total-clientes-report').textContent = totalClientes;
+                    
+                    const pendentes = document.querySelectorAll('#tabela-emprestimos tbody tr[data-status="pendente"]').length;
+                    document.getElementById('pendentes-report').textContent = pendentes;
+                }
+            }
+        }
+
+        loginForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            loginPage.style.display = 'none';
+            loginPage.classList.remove('active');
+            appLayout.style.display = 'block';
+            showPage('home-page');
+        });
+        
+        function logout() {
+            appLayout.style.display = 'none';
+            loginPage.style.display = 'flex';
+            loginPage.classList.add('active');
+        }
+
+        // --- LÓGICA DOS MODAIS ---
+        function openEditEmprestimoModal(id, livro, leitor, dataInicio, dataDevolucao, status) {
+            document.getElementById('modal-livro-info').textContent = livro;
+            document.getElementById('modal-leitor-info').textContent = leitor;
+            document.getElementById('edit-emprestimo-id').value = id;
+            document.getElementById('edit-data-inicio').value = dataInicio;
+            document.getElementById('edit-data-devolucao').value = dataDevolucao;
+            document.getElementById('edit-status').value = status;
+            editEmprestimoModal.classList.remove('hidden');
+        }
+
+        function closeEditEmprestimoModal() {
+            editEmprestimoModal.classList.add('hidden');
+        }
+        
+        function openEditLivroModal(id, nome, autor, genero, qntd) {
+            document.getElementById('edit-livro-id').value = id;
+            document.getElementById('edit-livro-nome').value = nome;
+            document.getElementById('edit-livro-autor').value = autor;
+            document.getElementById('edit-livro-genero').value = genero;
+            document.getElementById('edit-livro-qntd').value = qntd;
+            editLivroModal.classList.remove('hidden');
+        }
+
+        function closeEditLivroModal() {
+            editLivroModal.classList.add('hidden');
+        }
+        
+        function openEditLeitorModal(id, nome, cpf, nascimento, celular, email, cep, endereco) {
+            document.getElementById('edit-leitor-id').value = id;
+            document.getElementById('edit-leitor-nome-completo').value = nome;
+            document.getElementById('edit-leitor-cpf').value = cpf;
+            document.getElementById('edit-leitor-nascimento').value = nascimento;
+            document.getElementById('edit-leitor-celular').value = celular;
+            document.getElementById('edit-leitor-email').value = email;
+            document.getElementById('edit-leitor-cep').value = cep;
+            document.getElementById('edit-leitor-endereco').value = endereco;
+            editLeitorModal.classList.remove('hidden');
+        }
+        
+        function closeEditLeitorModal() {
+            editLeitorModal.classList.add('hidden');
+        }
+
+        document.getElementById('edit-emprestimo-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            console.log('Salvando alterações do empréstimo...');
+            closeEditEmprestimoModal();
+        });
+        
+        document.getElementById('edit-livro-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            console.log('Salvando alterações do livro...');
+            closeEditLivroModal();
+        });
+        
+        document.getElementById('edit-leitor-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            console.log('Salvando alterações do cliente...');
+            closeEditLeitorModal();
+        });
+
+        // --- LÓGICA DO PDF ---
+        function gerarPDF() {
+            alert('Simulação: O relatório em PDF com os empréstimos do mês seria gerado e o download iniciado agora.');
+        }
+
+
+        // --- LÓGICA DOS FILTROS ---
+        function setupTableFilter(tableId, searchInputId, statusFilterId) {
+            const searchInput = document.getElementById(searchInputId);
+            const statusSelect = statusFilterId ? document.getElementById(statusFilterId) : null;
+            const tableRows = document.querySelectorAll(`#${tableId} tbody tr`);
+
+            function filterRows() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const statusTerm = statusSelect ? statusSelect.value : 'todos';
+
+                tableRows.forEach(row => {
+                    const searchData = row.dataset.search || '';
+                    const statusData = row.dataset.status || '';
+
+                    const matchesSearch = searchData.includes(searchTerm);
+                    const matchesStatus = (statusTerm === 'todos') || (statusData === statusTerm);
+
+                    if (matchesSearch && matchesStatus) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+
+            searchInput.addEventListener('input', filterRows);
+            if (statusSelect) {
+                statusSelect.addEventListener('change', filterRows);
+            }
+        }
+
+        // --- INICIALIZAÇÃO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            loginPage.style.display = 'flex';
+
+            setupTableFilter('tabela-livros', 'livro-search', 'livro-status-filter');
+            setupTableFilter('tabela-leitores', 'leitor-search', null);
+            setupTableFilter('tabela-emprestimos', 'emprestimo-search', 'emprestimo-status-filter');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg mt-10">
+  <h2 class="text-2xl font-bold mb-6 text-gray-800">Adicionar Novo Livro</h2>
+  <form action="/livros/novo" method="POST" class="space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <label for="titulo" class="block text-sm font-medium text-gray-700">Título</label>
+        <input type="text" id="titulo" name="titulo" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+      </div>
+      <div>
+        <label for="autor" class="block text-sm font-medium text-gray-700">Autor</label>
+        <input type="text" id="autor" name="autor" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+      </div>
+      <div>
+        <label for="genero" class="block text-sm font-medium text-gray-700">Gênero</label>
+        <input type="text" id="genero" name="genero" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+      </div>
+      <div>
+        <label for="disponivel" class="block text-sm font-medium text-gray-700">Quantidade Disponível</label>
+        <input type="number" id="disponivel" name="disponivel" min="0" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 pt-4">
+      <a href="/livros" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Cancelar</a>
+      <button type="submit" class="px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800">Salvar</button>
+    </div>
+  </form>
+</div>

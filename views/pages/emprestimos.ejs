@@ -1,0 +1,52 @@
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-3xl font-bold text-gray-800">Controle de Empréstimos</h1>
+  <a href="/emprestimos/novo" class="flex items-center px-4 py-2 font-semibold text-white bg-yellow-700 rounded-md hover:bg-yellow-800 transition-colors">
+    <i class="ph-bold ph-plus mr-2"></i> Novo Empréstimo
+  </a>
+</div>
+<div class="mb-4 flex space-x-4">
+  <input type="search" id="emprestimo-search" placeholder="Pesquisar por livro, leitor ou CPF..." class="w-full px-3 py-2 border border-gray-300 rounded-md">
+  <select id="emprestimo-status-filter" class="px-3 py-2 border border-gray-300 rounded-md">
+    <option value="todos">Todos</option>
+    <option value="pendente">Pendentes</option>
+    <option value="devolvido">Devolvidos</option>
+  </select>
+</div>
+<div class="bg-white p-4 rounded-lg shadow-md">
+  <table class="w-full text-left" id="tabela-emprestimos">
+    <thead class="border-b-2 border-gray-200">
+      <tr>
+        <th class="p-3">Livro</th>
+        <th class="p-3">Leitor</th>
+        <th class="p-3">CPF do Leitor</th>
+        <th class="p-3">Devolução</th>
+        <th class="p-3">Status</th>
+        <th class="p-3">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% emprestimos.forEach(emp => { %>
+        <tr class="border-b border-gray-100"
+            data-status="<%= emp.status %>"
+            data-search="<%= emp.livro %> <%= emp.leitor %> <%= emp.cpf %>">
+          <td class="p-3"><%= emp.livro %></td>
+          <td class="p-3"><%= emp.leitor %></td>
+          <td class="p-3"><%= emp.cpf %></td>
+          <td class="p-3"><%= emp.devolucao %></td>
+          <td class="p-3">
+            <span class="px-2 py-1 text-xs font-semibold <%= emp.status === 'pendente' ? 'text-yellow-800 bg-yellow-100' : 'text-green-800 bg-green-100' %> rounded-full">
+              <%= emp.status.charAt(0).toUpperCase() + emp.status.slice(1) %>
+            </span>
+          </td>
+          <td class="p-3">
+  <i class="ph ph-pencil-simple cursor-pointer text-blue-600 hover:text-blue-800"
+     title="Editar Empréstimo"
+     onclick="abrirModalEmprestimo(<%= JSON.stringify(emp) %>, <%= emprestimos.indexOf(emp) %>)"></i>
+</td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include("../modals/edit_emprestimo") %>

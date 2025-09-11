@@ -1,0 +1,42 @@
+<div id="edit-leitor-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Editar Cliente</h2>
+        <form id="edit-leitor-form" class="space-y-4">
+            <input type="hidden" id="edit-leitor-id">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="edit-leitor-nome-completo" class="text-sm font-medium text-gray-700">Nome Completo</label>
+                    <input id="edit-leitor-nome-completo" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                </div>
+                <div>
+                    <label for="edit-leitor-cpf" class="text-sm font-medium text-gray-700">CPF</label>
+                    <input id="edit-leitor-cpf" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                </div>
+                <div>
+                    <label for="edit-leitor-nascimento" class="text-sm font-medium text-gray-700">Data de Nascimento</label>
+                    <input id="edit-leitor-nascimento" type="date" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                </div>
+                <div>
+                    <label for="edit-leitor-celular" class="text-sm font-medium text-gray-700">Nº Celular</label>
+                    <input id="edit-leitor-celular" type="tel" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                </div>
+                <div>
+                    <label for="edit-leitor-email" class="text-sm font-medium text-gray-700">Email</label>
+                    <input id="edit-leitor-email" type="email" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                </div>
+                <div>
+                    <label for="edit-leitor-cep" class="text-sm font-medium text-gray-700">CEP</label>
+                    <input id="edit-leitor-cep" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="edit-leitor-endereco" class="text-sm font-medium text-gray-700">Endereço</label>
+                    <input id="edit-leitor-endereco" type="text" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md">
+                </div>
+            </div>
+            <div class="flex space-x-4 pt-4">
+                <button type="submit" class="w-full sm:w-auto px-6 py-2 font-semibold text-white bg-blue-700 rounded-md hover:bg-blue-800">Salvar Alterações</button>
+                <button type="button" onclick="closeEditLeitorModal()" class="w-full sm:w-auto px-6 py-2 font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>

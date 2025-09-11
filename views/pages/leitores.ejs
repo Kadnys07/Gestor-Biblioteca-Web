@@ -1,0 +1,37 @@
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-3xl font-bold text-gray-800">Cadastro de Leitores</h1>
+  <a href="/leitores/novo" class="flex items-center px-4 py-2 font-semibold text-white bg-blue-700 rounded-md hover:bg-blue-800 transition-colors">
+    <i class="ph-bold ph-plus mr-2"></i> Adicionar Leitor
+  </a>
+</div>
+<div class="mb-4 flex">
+  <input type="search" id="leitor-search" placeholder="Pesquisar por nome, email ou CPF..." class="w-full px-3 py-2 border border-gray-300 rounded-md">
+</div>
+<div class="bg-white p-4 rounded-lg shadow-md">
+  <table class="w-full text-left" id="tabela-leitores">
+    <thead class="border-b-2 border-gray-200">
+      <tr>
+        <th class="p-3">Nome</th>
+        <th class="p-3">CPF</th>
+        <th class="p-3">Email</th>
+        <th class="p-3">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% leitores.forEach(leitor => { %>
+        <tr class="border-b border-gray-100"
+            data-search="<%= leitor.nome %> <%= leitor.email %> <%= leitor.cpf %>">
+          <td class="p-3"><%= leitor.nome %></td>
+          <td class="p-3"><%= leitor.cpf %></td>
+          <td class="p-3"><%= leitor.email %></td>
+          <td class="p-3 flex space-x-2">
+  <i class="ph ph-pencil-simple cursor-pointer text-blue-600 hover:text-blue-800"
+     title="Editar Leitor"
+     onclick="abrirModalLeitor(<%= JSON.stringify(leitor) %>, <%= leitores.indexOf(leitor) %>)"></i>
+</td>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include("../modals/edit_leitor") %>

@@ -28,6 +28,7 @@ let emprestimos = [
     livro: "O Senhor dos Anéis",
     leitor: "Ana Silva",
     cpf: "111.222.333-44",
+    coleta: "01-07-2024",
     devolucao: "08-07-2024",
     status: "pendente"
   }

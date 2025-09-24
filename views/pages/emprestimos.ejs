@@ -18,7 +18,7 @@
       <tr>
         <th class="p-3">Livro</th>
         <th class="p-3">Leitor</th>
-        <th class="p-3">CPF do Leitor</th>
+        <th class="p-3">Empréstimo</th>
         <th class="p-3">Devolução</th>
         <th class="p-3">Status</th>
         <th class="p-3">Ações</th>
@@ -31,18 +31,18 @@
             data-search="<%= emp.livro %> <%= emp.leitor %> <%= emp.cpf %>">
           <td class="p-3"><%= emp.livro %></td>
           <td class="p-3"><%= emp.leitor %></td>
-          <td class="p-3"><%= emp.cpf %></td>
-          <td class="p-3"><%= emp.devolucao %></td>
+          <td class="p-3"><%= formatarData(emp.dataInicio) %></td>
+          <td class="p-3"><%= formatarData(emp.devolucao) %></td>
           <td class="p-3">
             <span class="px-2 py-1 text-xs font-semibold <%= emp.status === 'pendente' ? 'text-yellow-800 bg-yellow-100' : 'text-green-800 bg-green-100' %> rounded-full">
               <%= emp.status.charAt(0).toUpperCase() + emp.status.slice(1) %>
             </span>
           </td>
           <td class="p-3">
-  <i class="ph ph-pencil-simple cursor-pointer text-blue-600 hover:text-blue-800"
-     title="Editar Empréstimo"
-     onclick="abrirModalEmprestimo(<%= JSON.stringify(emp) %>, <%= emprestimos.indexOf(emp) %>)"></i>
-</td>
+            <i class="ph ph-pencil-simple cursor-pointer text-blue-600 hover:text-blue-800"
+               title="Editar Empréstimo"
+               onclick="abrirModalEmprestimo(<%= JSON.stringify(emp) %>, <%= emprestimos.indexOf(emp) %>)"></i>
+          </td>
         </tr>
       <% }) %>
     </tbody>

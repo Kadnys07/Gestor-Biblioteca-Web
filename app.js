@@ -28,8 +28,8 @@ let emprestimos = [
     livro: "O Senhor dos Anéis",
     leitor: "Ana Silva",
     cpf: "111.222.333-44",
-    coleta: "01-07-2024",
-    devolucao: "08-07-2024",
+    dataInicio: "2024-07-01",
+    devolucao: "2024-07-08",
     status: "pendente"
   }
 ];
@@ -43,11 +43,19 @@ app.set('layout', 'layout');
 // Middlewares
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(session({
   secret: 'biblioteca-secret',
   resave: false,
   saveUninitialized: false
 }));
+
+// --- FUNÇÃO AJUDANTE PARA FORMATAR A DATA (LOCAL CORRETO) ---
+app.locals.formatarData = function(data) {
+  if (!data) return '';
+  const [ano, mes, dia] = data.split('-');
+  return `${dia}/${mes}/${ano}`;
+};
 
 // Middleware para proteger rotas
 function requireLogin(req, res, next) {
@@ -82,7 +90,7 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// CADASTROS (sem sidebar)
+// --- ROTAS DE LIVROS ---
 app.get('/livros/novo', requireLogin, (req, res) => {
   res.render('pages/livros_novo', { title: 'Novo Livro', hideSidebar: true });
 });
@@ -91,7 +99,17 @@ app.post('/livros/novo', requireLogin, (req, res) => {
   livros.push({ titulo, autor, genero, disponivel: Number(disponivel) });
   res.redirect('/livros');
 });
+app.post('/livros/editar', requireLogin, (req, res) => {
+  const { id, titulo, autor, genero, disponivel } = req.body;
+  if (livros[id]) {
+    livros[id] = { titulo, autor, genero, disponivel: Number(disponivel) };
+    res.json({ success: true, message: 'Livro atualizado com sucesso!' });
+  } else {
+    res.status(404).json({ success: false, message: 'Livro não encontrado.' });
+  }
+});
 
+// --- ROTAS DE LEITORES ---
 app.get('/leitores/novo', requireLogin, (req, res) => {
   res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true });
 });
@@ -100,17 +118,40 @@ app.post('/leitores/novo', requireLogin, (req, res) => {
   leitores.push({ nome, cpf, nascimento, celular, email, cep, endereco });
   res.redirect('/leitores');
 });
+app.post('/leitores/editar', requireLogin, (req, res) => {
+  const { id, nome, cpf, nascimento, celular, email, cep, endereco } = req.body;
+  if (leitores[id]) {
+    leitores[id] = { nome, cpf, nascimento, celular, email, cep, endereco };
+    res.json({ success: true, message: 'Leitor atualizado com sucesso!' });
+  } else {
+    res.status(404).json({ success: false, message: 'Leitor não encontrado.' });
+  }
+});
 
+// --- ROTAS DE EMPRÉSTIMOS ---
 app.get('/emprestimos/novo', requireLogin, (req, res) => {
   res.render('pages/emprestimos_novo', { title: 'Novo Empréstimo', hideSidebar: true, livros, leitores });
 });
 app.post('/emprestimos/novo', requireLogin, (req, res) => {
   const { livro, leitor, cpf, devolucao } = req.body;
-  emprestimos.push({ livro, leitor, cpf, devolucao, status: "pendente" });
+  // LÓGICA DA DATA DE INÍCIO MOVIDA PARA O LUGAR CERTO (DENTRO DA ROTA)
+  const dataInicio = new Date().toISOString().split('T')[0];
+  emprestimos.push({ livro, leitor, cpf, dataInicio, devolucao, status: "pendente" });
   res.redirect('/emprestimos');
 });
+app.post('/emprestimos/editar', requireLogin, (req, res) => {
+  const { id, devolucao, status } = req.body;
+  if (emprestimos[id]) {
+    // Atualiza apenas os campos necessários
+    emprestimos[id].devolucao = devolucao;
+    emprestimos[id].status = status;
+    res.json({ success: true, message: 'Empréstimo atualizado com sucesso!' });
+  } else {
+    res.status(404).json({ success: false, message: 'Empréstimo não encontrado.' });
+  }
+});
 
-// PÁGINAS INTERNAS (com sidebar)
+// --- PÁGINAS INTERNAS ---
 app.get('/home', requireLogin, (req, res) => {
   res.render('pages/home', { title: 'Home', hideSidebar: false });
 });
@@ -137,3 +178,4 @@ app.get('/relatorios', requireLogin, (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
+

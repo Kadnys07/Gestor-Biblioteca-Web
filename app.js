@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const expressLayouts = require('express-ejs-layouts');
 const session = require('express-session');
+const PDFDocument = require('pdfkit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -220,6 +221,51 @@ app.get('/relatorios', requireLogin, (req, res) => {
   });
 });
 
+app.get('/relatorios/pdf', requireLogin, (req, res) => {
+  const doc = new PDFDocument({ margin: 50 });
+
+  // Define o nome do arquivo que será baixado
+  const filename = `Relatorio-Emprestimos-${new Date().toISOString().slice(0, 10)}.pdf`;
+  res.setHeader('Content-disposition', `attachment; filename="${filename}"`);
+  res.setHeader('Content-type', 'application/pdf');
+
+  // Conecta o PDF à resposta para o navegador
+  doc.pipe(res);
+
+  // --- CONTEÚDO DO PDF ---
+
+  // Cabeçalho do Relatório
+  doc.fontSize(18).font('Helvetica-Bold').text('Relatório de Empréstimos Mensal', { align: 'center' });
+  doc.fontSize(12).font('Helvetica').text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, { align: 'center' });
+  doc.moveDown(2);
+
+  // Títulos da Tabela
+  const yPosition = doc.y;
+  doc.fontSize(10).font('Helvetica-Bold');
+  doc.text('Livro', 50, yPosition);
+  doc.text('Leitor', 200, yPosition);
+  doc.text('Data Empréstimo', 350, yPosition);
+  doc.text('Data Devolução', 450, yPosition);
+  doc.moveDown();
+  
+  // Linha divisória
+  doc.strokeColor("#aaaaaa").lineWidth(1).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+  doc.moveDown();
+  
+  // Corpo da Tabela
+  doc.fontSize(10).font('Helvetica');
+  emprestimos.forEach(emp => {
+    const rowY = doc.y;
+    doc.text(emp.livro, 50, rowY, { width: 140 }); // Limita a largura para evitar sobreposição
+    doc.text(emp.leitor, 200, rowY, { width: 140 });
+    doc.text(app.locals.formatarData(emp.dataInicio), 350, rowY, { width: 90 });
+    doc.text(app.locals.formatarData(emp.devolucao), 450, rowY, { width: 90 });
+    doc.moveDown();
+  });
+
+  
+  doc.end();
+});
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);

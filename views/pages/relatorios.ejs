@@ -1,25 +1,58 @@
-<h1 class="text-3xl font-bold text-gray-800 mb-6">Relatórios</h1>
-
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-  <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-lg font-semibold text-gray-700 mb-2">Clientes cadastrados</h2>
-    <p class="text-4xl font-bold text-green-700">
-      <%= totalLeitores %>
-    </p>
+<!-- Container principal com espaçamento vertical -->
+<div class="space-y-8">
+  
+  <!-- Cabeçalho da Página -->
+  <div>
+    <h1 class="text-3xl font-bold text-gray-800">Relatórios e Métricas</h1>
+    <p class="mt-2 text-lg text-gray-500">Acompanhe os principais indicadores da sua biblioteca.</p>
   </div>
-  <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-lg font-semibold text-gray-700 mb-2">Empréstimos em aberto</h2>
-    <p class="text-4xl font-bold text-yellow-700">
-      <%= emprestimosAbertos %>
-    </p>
-  </div>
-</div>
 
-<div class="bg-white p-6 rounded-lg shadow-md">
-  <h2 class="text-xl font-bold text-gray-800">Relatórios Mensais</h2>
-  <p class="text-gray-600 mt-2 mb-4">Gere um relatório em PDF com todos os empréstimos realizados no mês atual.</p>
-  <button onclick="gerarPDF()"
-    class="flex items-center px-4 py-2 font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">
-    <i class="ph-bold ph-file-pdf mr-2"></i> Gerar PDF de Empréstimos do Mês
-  </button>
+  <!-- Grid para os Cards de Métricas (KPIs) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+
+    <!-- Card: Total de Leitores -->
+    <div class="bg-white rounded-xl shadow-lg p-6 flex items-center justify-between transition-transform transform hover:scale-105">
+      <div>
+        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Total de Leitores</h3>
+        <p class="mt-2 text-5xl font-bold text-gray-800"><%= totalLeitores %></p>
+      </div>
+      <div class="bg-green-100 p-4 rounded-full">
+        <i class="ph-bold ph-users text-4xl text-green-600"></i>
+      </div>
+    </div>
+
+    <!-- Card: Empréstimos em Aberto -->
+    <div class="bg-white rounded-xl shadow-lg p-6 flex items-center justify-between transition-transform transform hover:scale-105">
+      <div>
+        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Empréstimos em Aberto</h3>
+        <p class="mt-2 text-5xl font-bold text-gray-800"><%= emprestimosAbertos %></p>
+      </div>
+      <div class="bg-yellow-100 p-4 rounded-full">
+        <i class="ph-bold ph-arrow-arc-left text-4xl text-yellow-600"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Seção de Geração de PDF -->
+  <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="p-6">
+        <div class="flex items-start space-x-4">
+            <div class="bg-red-100 p-3 rounded-full mt-1">
+                <i class="ph-bold ph-file-pdf text-2xl text-red-600"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-gray-800">Relatório Detalhado de Empréstimos</h3>
+                <p class="mt-1 text-gray-500">Gere e baixe um arquivo PDF com o registro completo de todos os empréstimos realizados no sistema. Ideal para arquivamento e auditoria.</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-gray-50 px-6 py-4">
+      <a href="/relatorios/pdf" 
+         class="inline-flex items-center px-6 py-3 font-semibold text-white bg-red-600 rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transform hover:scale-105 transition-all duration-300">
+        <i class="ph-bold ph-download-simple mr-2 text-lg"></i>
+        Baixar Relatório em PDF
+      </a>
+    </div>
+  </div>
+
 </div>

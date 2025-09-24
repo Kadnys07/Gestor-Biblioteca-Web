@@ -1,4 +1,15 @@
-<aside class="w-64 bg-green-800 text-white flex flex-col">
+<!--
+  ID adicionado: 'sidebar' para ser alvo do JavaScript.
+  Classes de Posição/Transformação:
+  - 'fixed inset-0 z-40': Posiciona o menu sobre tudo, ocupando a tela inteira.
+  - 'transform -translate-x-full': Esconde o menu para a esquerda fora da tela por padrão.
+  Classes Responsivas:
+  - 'lg:relative lg:translate-x-0': Em telas grandes (lg), remove o posicionamento fixo,
+    voltando ao fluxo normal do layout e tornando-o visível.
+  Classes de Transição:
+  - 'transition-transform duration-300 ease-in-out': Adiciona uma animação suave de deslize.
+-->
+<aside id="sidebar" class="w-64 bg-green-800 text-white flex flex-col fixed inset-0 z-40 transform -translate-x-full transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0">
   <div class="h-16 flex items-center justify-center text-2xl font-bold">
     <i class="ph-bold ph-books mr-2"></i>
     Gestor
@@ -22,7 +33,7 @@
   </nav>
   <div class="p-4 border-t border-green-700">
     <a href="/logout" class="flex items-center px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
-  <i class="ph-bold ph-sign-out mr-3"></i> Sair
+      <i class="ph-bold ph-sign-out mr-3"></i> Sair
     </a>
   </div>
 </aside>

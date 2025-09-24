@@ -6,26 +6,56 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body, html {
-      height: 100%;
-      overflow: hidden;
+    /* Garante que o scroll vertical ocorra apenas na área de conteúdo, evitando scroll duplo */
+    .main-content {
+      height: calc(100vh - 4rem); /* Altura da tela menos a altura do header mobile (1rem = 16px) */
+    }
+    @media (min-width: 1024px) { /* Breakpoint 'lg' do Tailwind */
+      .main-content {
+        height: 100vh; /* Em telas grandes, o conteúdo volta a ocupar a altura total */
+      }
     }
   </style>
 </head>
-<body class="bg-gray-100 h-screen overflow-hidden">
+<body class="bg-gray-100 antialiased">
+
   <% if (!hideSidebar) { %>
-    <div class="flex h-screen bg-gray-100 overflow-hidden">
+    <div class="relative min-h-screen lg:flex">
+      
+      <!-- Overlay que aparece com o menu mobile para permitir o fechamento ao clicar fora -->
+      <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
+
+      <!-- Sidebar (Menu Lateral) que agora é responsiva -->
       <%- include("partials/sidebar") %>
-      <main class="flex-1 p-6 h-screen overflow-hidden">
-        <%- body %>
-      </main>
+
+      <!-- Conteúdo Principal -->
+      <div class="flex-1 flex flex-col">
+
+        <!-- Header Mobile com Botão Hambúrguer (só aparece em telas pequenas) -->
+        <header class="p-4 bg-white shadow-md flex justify-between items-center lg:hidden">
+          <div class="text-xl font-bold text-gray-800">
+            <%= title %>
+          </div>
+          <button id="hamburger-button" class="text-gray-600 focus:outline-none" aria-label="Abrir menu">
+            <i class="ph-bold ph-list text-3xl"></i>
+          </button>
+        </header>
+
+        <!-- Container do conteúdo principal com sua própria barra de rolagem -->
+        <main class="p-6 main-content overflow-y-auto">
+          <%- body %>
+        </main>
+      </div>
+
     </div>
   <% } else { %>
-    <main class="flex-1 p-6 h-screen flex items-center justify-center overflow-hidden">
+    <!-- Layout para telas sem sidebar (como a de login) -->
+    <main class="min-h-screen flex items-center justify-center p-6">
       <%- body %>
     </main>
   <% } %>
-  <%- include("partials/footer") %>
-  <script defer src="/js/main.js"></script>
+  
+  <script src="/js/main.js"></script>
+
 </body>
 </html>

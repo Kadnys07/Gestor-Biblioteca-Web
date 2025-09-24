@@ -10,7 +10,6 @@ function setupTableFilter(tableId, searchInputId, statusFilterId) {
         tableRows.forEach(row => {
             const searchData = (row.dataset.search || '').toLowerCase();
             const statusData = row.dataset.status || '';
-
             const matchesSearch = searchData.includes(searchTerm);
             const matchesStatus = (statusTerm === 'todos') || (statusData === statusTerm);
 
@@ -26,23 +25,122 @@ function setupTableFilter(tableId, searchInputId, statusFilterId) {
     if (statusSelect) statusSelect.addEventListener('change', filterRows);
 }
 
-// Inicialização para cada página
 document.addEventListener('DOMContentLoaded', () => {
-    // Configura o filtro da tabela de livros, se ela existir
+    // --- LÓGICA DO MENU HAMBÚRGUER (A PARTE QUE FALTAVA) ---
+    const sidebar = document.getElementById('sidebar');
+    const hamburgerButton = document.getElementById('hamburger-button');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    // Verifica se os elementos do menu existem na página antes de adicionar os eventos
+    if (sidebar && hamburgerButton && sidebarOverlay) {
+        const openSidebar = () => {
+            sidebar.classList.remove('-translate-x-full');
+            sidebarOverlay.classList.remove('hidden');
+        };
+        const closeSidebar = () => {
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
+        };
+        hamburgerButton.addEventListener('click', openSidebar);
+        sidebarOverlay.addEventListener('click', closeSidebar);
+    }
+    // --- FIM DA LÓGICA DO MENU ---
+
+    // Configuração dos filtros das tabelas
     if (document.getElementById('tabela-livros')) {
         setupTableFilter('tabela-livros', 'livro-search', 'livro-status-filter');
     }
-    // Configura o filtro da tabela de leitores, se ela existir
     if (document.getElementById('tabela-leitores')) {
         setupTableFilter('tabela-leitores', 'leitor-search', null);
     }
-    // Configura o filtro da tabela de empréstimos, se ela existir
     if (document.getElementById('tabela-emprestimos')) {
         setupTableFilter('tabela-emprestimos', 'emprestimo-search', 'emprestimo-status-filter');
     }
+
+    // Lógica para salvar edição de Livro
+    const formEditLivro = document.getElementById('edit-livro-form');
+    if (formEditLivro) {
+        formEditLivro.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const id = document.getElementById('edit-livro-id').value;
+            const titulo = document.getElementById('edit-livro-nome').value;
+            const autor = document.getElementById('edit-livro-autor').value;
+            const genero = document.getElementById('edit-livro-genero').value;
+            const disponivel = document.getElementById('edit-livro-qntd').value;
+            fetch('/livros/editar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, titulo, autor, genero, disponivel })
+            }).then(response => response.json()).then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Erro ao atualizar o livro: ' + data.message);
+                }
+            }).catch(error => {
+                console.error('Erro na requisição:', error);
+                alert('Ocorreu um erro de comunicação com o servidor.');
+            });
+        });
+    }
+
+    // Lógica para salvar edição de Leitor
+    const formEditLeitor = document.getElementById('edit-leitor-form');
+    if (formEditLeitor) {
+        formEditLeitor.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const id = document.getElementById('edit-leitor-id').value;
+            const nome = document.getElementById('edit-leitor-nome-completo').value;
+            const cpf = document.getElementById('edit-leitor-cpf').value;
+            const nascimento = document.getElementById('edit-leitor-nascimento').value;
+            const celular = document.getElementById('edit-leitor-celular').value;
+            const email = document.getElementById('edit-leitor-email').value;
+            const cep = document.getElementById('edit-leitor-cep').value;
+            const endereco = document.getElementById('edit-leitor-endereco').value;
+            fetch('/leitores/editar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, nome, cpf, nascimento, celular, email, cep, endereco })
+            }).then(response => response.json()).then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Erro ao atualizar o leitor: ' + data.message);
+                }
+            }).catch(error => {
+                console.error('Erro na requisição:', error);
+                alert('Ocorreu um erro de comunicação com o servidor.');
+            });
+        });
+    }
+
+    // Lógica para salvar edição de Empréstimo
+    const formEditEmprestimo = document.getElementById('edit-emprestimo-form');
+    if (formEditEmprestimo) {
+        formEditEmprestimo.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const id = document.getElementById('edit-emprestimo-id').value;
+            const devolucao = document.getElementById('edit-data-devolucao').value;
+            const status = document.getElementById('edit-status').value;
+            fetch('/emprestimos/editar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, devolucao, status })
+            }).then(response => response.json()).then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Erro ao atualizar empréstimo: ' + data.message);
+                }
+            }).catch(error => {
+                console.error('Erro na requisição:', error);
+                alert('Ocorreu um erro de comunicação com o servidor.');
+            });
+        });
+    }
 });
 
-// MODAL DE LIVROS
+// FUNÇÕES DE MODAL (sem alterações)
 window.abrirModalLivro = function(livro, idx) {
     document.getElementById('edit-livro-id').value = idx;
     document.getElementById('edit-livro-nome').value = livro.titulo;
@@ -54,8 +152,6 @@ window.abrirModalLivro = function(livro, idx) {
 window.closeEditLivroModal = function() {
     document.getElementById('edit-livro-modal').classList.add('hidden');
 };
-
-// MODAL DE LEITORES
 window.abrirModalLeitor = function(leitor, idx) {
     document.getElementById('edit-leitor-id').value = idx;
     document.getElementById('edit-leitor-nome-completo').value = leitor.nome;
@@ -70,8 +166,6 @@ window.abrirModalLeitor = function(leitor, idx) {
 window.closeEditLeitorModal = function() {
     document.getElementById('edit-leitor-modal').classList.add('hidden');
 };
-
-// MODAL DE EMPRÉSTIMOS
 window.abrirModalEmprestimo = function(emp, idx) {
     document.getElementById('edit-emprestimo-id').value = idx;
     document.getElementById('modal-livro-info').textContent = emp.livro;
@@ -85,105 +179,3 @@ window.closeEditEmprestimoModal = function() {
     document.getElementById('edit-emprestimo-modal').classList.add('hidden');
 };
 
-
-// --- LÓGICA PARA SALVAR EDIÇÕES ---
-
-// Tenta encontrar o formulário de edição de livros
-const formEditLivro = document.getElementById('edit-livro-form');
-// SÓ adiciona o listener SE o formulário existir na página atual
-if (formEditLivro) {
-    formEditLivro.addEventListener('submit', function(event) {
-        event.preventDefault();
-        const id = document.getElementById('edit-livro-id').value;
-        const titulo = document.getElementById('edit-livro-nome').value;
-        const autor = document.getElementById('edit-livro-autor').value;
-        const genero = document.getElementById('edit-livro-genero').value;
-        const disponivel = document.getElementById('edit-livro-qntd').value;
-        
-        fetch('/livros/editar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, titulo, autor, genero, disponivel })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.reload();
-            } else {
-                alert('Erro ao atualizar o livro: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Erro na requisição:', error);
-            alert('Ocorreu um erro de comunicação com o servidor.');
-        });
-    });
-}
-
-// Tenta encontrar o formulário de edição de leitores
-const formEditLeitor = document.getElementById('edit-leitor-form');
-// SÓ adiciona o listener SE o formulário existir na página atual
-if (formEditLeitor) {
-    formEditLeitor.addEventListener('submit', function(event) {
-        event.preventDefault();
-        const id = document.getElementById('edit-leitor-id').value;
-        const nome = document.getElementById('edit-leitor-nome-completo').value;
-        const cpf = document.getElementById('edit-leitor-cpf').value;
-        const nascimento = document.getElementById('edit-leitor-nascimento').value;
-        const celular = document.getElementById('edit-leitor-celular').value;
-        const email = document.getElementById('edit-leitor-email').value;
-        const cep = document.getElementById('edit-leitor-cep').value;
-        const endereco = document.getElementById('edit-leitor-endereco').value;
-        
-        const dadosParaEnviar = { id, nome, cpf, nascimento, celular, email, cep, endereco };
-        console.log("Dados que serão enviados para o servidor:", dadosParaEnviar); 
-        
-        fetch('/leitores/editar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dadosParaEnviar)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.reload();
-            } else {
-                alert('Erro ao atualizar o leitor: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Erro na requisição:', error);
-            alert('Ocorreu um erro de comunicação com o servidor.');
-        });
-    });
-}
-
-// Tenta encontrar o formulário de edição de empréstimos
-const formEditEmprestimo = document.getElementById('edit-emprestimo-form');
-// SÓ adiciona o listener SE o formulário existir na página atual
-if (formEditEmprestimo) {
-    formEditEmprestimo.addEventListener('submit', function(event) {
-        event.preventDefault();
-        const id = document.getElementById('edit-emprestimo-id').value;
-        const devolucao = document.getElementById('edit-data-devolucao').value;
-        const status = document.getElementById('edit-status').value;
-
-        fetch('/emprestimos/editar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, devolucao, status })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.reload();
-            } else {
-                alert('Erro ao atualizar o empréstimo: ' + data.message);
-            }       
-        })
-        .catch(error => {
-            console.error('Erro na requisição:', error);
-            alert('Ocorreu um erro de comunicação com o servidor.');
-        }); 
-    });
-}

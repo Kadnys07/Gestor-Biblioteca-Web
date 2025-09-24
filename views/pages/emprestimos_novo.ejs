@@ -3,33 +3,33 @@
   <form action="/emprestimos/novo" method="POST" class="space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label for="livro" class="block text-sm font-medium text-gray-700">Livro</label>
+        <label for="livro" class="block text-sm font-medium text-gray-700">Livro Disponível</label>
         <select id="livro" name="livro" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+          <option value="">Selecione um livro</option>
           <% livros.forEach(livro => { %>
-            <option value="<%= livro.titulo %>"><%= livro.titulo %></option>
+            <!-- O valor enviado será o título do livro -->
+            <option value="<%= livro.titulo %>"><%= livro.titulo %> (Disp: <%= livro.disponivel %>)</option>
           <% }) %>
         </select>
       </div>
       <div>
         <label for="leitor" class="block text-sm font-medium text-gray-700">Leitor</label>
         <select id="leitor" name="leitor" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+           <option value="">Selecione um leitor</option>
           <% leitores.forEach(leitor => { %>
-            <option value="<%= leitor.nome %>"><%= leitor.nome %></option>
+            <!-- O valor enviado será o CPF, mas o usuário vê o Nome e o CPF -->
+            <option value="<%= leitor.cpf %>"><%= leitor.nome %> (<%= leitor.cpf %>)</option>
           <% }) %>
         </select>
       </div>
-      <div>
-        <label for="cpf" class="block text-sm font-medium text-gray-700">CPF do Leitor</label>
-        <input type="text" id="cpf" name="cpf" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
-      </div>
-      <div>
+      <div class="md:col-span-2">
         <label for="devolucao" class="block text-sm font-medium text-gray-700">Data de Devolução</label>
         <input type="date" id="devolucao" name="devolucao" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
       </div>
     </div>
     <div class="flex justify-end gap-2 pt-4">
       <a href="/emprestimos" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Cancelar</a>
-      <button type="submit" class="px-4 py-2 bg-yellow-700 text-white rounded-md hover:bg-yellow-800">Registrar</button>
+      <button type="submit" class="px-4 py-2 bg-yellow-700 text-white rounded-md hover:bg-yellow-800">Salvar</button>
     </div>
   </form>
 </div>

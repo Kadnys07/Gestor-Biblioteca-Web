@@ -7,14 +7,19 @@ const PDFDocument = require('pdfkit');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Dados em memória
+// --- DADOS COM IDs ---
+let proximoLivroId = 1;
+let proximoLeitorId = 1;
+let proximoEmprestimoId = 1;
+
 let livros = [
-  { titulo: "O Senhor dos Anéis", autor: "J.R.R. Tolkien", genero: "Fantasia", disponivel: 3, status: 'ativo' },
-  { titulo: "1984", autor: "George Orwell", genero: "Distopia", disponivel: 5, status: 'ativo' },
-  { titulo: "Dom Casmurro", autor: "Machado de Assis", genero: "Romance", disponivel: 0, status: 'ativo' }
+  { id: proximoLivroId++, titulo: "O Senhor dos Anéis", autor: "J.R.R. Tolkien", genero: "Fantasia", disponivel: 3, status: 'ativo' },
+  { id: proximoLivroId++, titulo: "1984", autor: "George Orwell", genero: "Distopia", disponivel: 5, status: 'ativo' },
+  { id: proximoLivroId++, titulo: "Dom Casmurro", autor: "Machado de Assis", genero: "Romance", disponivel: 0, status: 'ativo' }
 ];
 let leitores = [
   {
+    id: proximoLeitorId++,
     nome: "Ana Silva",
     cpf: "111.222.333-44",
     nascimento: "1990-01-01",
@@ -26,6 +31,7 @@ let leitores = [
 ];
 let emprestimos = [
   {
+    id: proximoEmprestimoId++,
     livro: "O Senhor dos Anéis",
     leitor: "Ana Silva",
     cpf: "111.222.333-44",
@@ -35,28 +41,20 @@ let emprestimos = [
   }
 ];
 
-// Configuração do EJS e layouts
+// Configuração e Middlewares
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(expressLayouts);
 app.set('layout', 'layout');
-
-// Middlewares
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(session({
-  secret: 'biblioteca-secret',
-  resave: false,
-  saveUninitialized: false
-}));
-
+app.use(session({ secret: 'biblioteca-secret', resave: false, saveUninitialized: false }));
 app.locals.formatarData = function(data) {
   if (!data) return '';
   const [ano, mes, dia] = data.split('-');
   return `${dia}/${mes}/${ano}`;
 };
-
 function requireLogin(req, res, next) {
   if (req.session && req.session.logado) {
     next();
@@ -65,13 +63,9 @@ function requireLogin(req, res, next) {
   }
 }
 
-// Rotas... (outras rotas)
+// --- ROTAS ---
 app.get('/', (req, res) => res.redirect('/login'));
-
-// LOGIN (sem sidebar)
-app.get('/login', (req, res) => {
-  res.render('pages/login', { title: 'Login', erro: null, hideSidebar: true });
-});
+app.get('/login', (req, res) => res.render('pages/login', { title: 'Login', erro: null, hideSidebar: true }));
 app.post('/login', (req, res) => {
   const { email, senha } = req.body;
   if (email === 'gestor@biblioteca.com' && senha === '123456') {
@@ -82,43 +76,49 @@ app.post('/login', (req, res) => {
   }
 });
 app.get('/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/login');
-  });
+  req.session.destroy(() => res.redirect('/login'));
 });
+app.get('/home', requireLogin, (req, res) => res.render('pages/home', { title: 'Home', hideSidebar: false }));
+
 
 // --- ROTAS DE LIVROS ---
-app.get('/livros/novo', requireLogin, (req, res) => {
-  res.render('pages/livros_novo', { title: 'Novo Livro', hideSidebar: true });
-});
+app.get('/livros/novo', requireLogin, (req, res) => res.render('pages/livros_novo', { title: 'Novo Livro', hideSidebar: true }));
 app.post('/livros/novo', requireLogin, (req, res) => {
   const { titulo, autor, genero, disponivel } = req.body;
-  livros.push({ titulo, autor, genero, disponivel: Number(disponivel), status: 'ativo' });
+  livros.push({ id: proximoLivroId++, titulo, autor, genero, disponivel: Number(disponivel), status: 'ativo' });
   res.redirect('/livros');
 });
+
 app.post('/livros/editar', requireLogin, (req, res) => {
   const { id, titulo, autor, genero, disponivel } = req.body;
-  if (livros[id]) {
-    livros[id] = { ...livros[id], titulo, autor, genero, disponivel: Number(disponivel) };
+  const livroIndex = livros.findIndex(l => l.id == id);
+
+  if (livroIndex !== -1) {
+    livros[livroIndex].titulo = titulo;
+    livros[livroIndex].autor = autor;
+    livros[livroIndex].genero = genero;
+    livros[livroIndex].disponivel = Number(disponivel);
     res.json({ success: true, message: 'Livro atualizado com sucesso!' });
   } else {
     res.status(404).json({ success: false, message: 'Livro não encontrado.' });
   }
 });
 
+
 // --- ROTAS DE LEITORES ---
-app.get('/leitores/novo', requireLogin, (req, res) => {
-  res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true });
-});
+app.get('/leitores/novo', requireLogin, (req, res) => res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true }));
 app.post('/leitores/novo', requireLogin, (req, res) => {
   const { nome, cpf, nascimento, celular, email, cep, endereco } = req.body;
-  leitores.push({ nome, cpf, nascimento, celular, email, cep, endereco });
+  leitores.push({ id: proximoLeitorId++, nome, cpf, nascimento, celular, email, cep, endereco });
   res.redirect('/leitores');
 });
+
 app.post('/leitores/editar', requireLogin, (req, res) => {
   const { id, nome, cpf, nascimento, celular, email, cep, endereco } = req.body;
-  if (leitores[id]) {
-    leitores[id] = { nome, cpf, nascimento, celular, email, cep, endereco };
+  const leitorIndex = leitores.findIndex(l => l.id == id);
+
+  if (leitorIndex !== -1) {
+    leitores[leitorIndex] = { id: Number(id), nome, cpf, nascimento, celular, email, cep, endereco };
     res.json({ success: true, message: 'Leitor atualizado com sucesso!' });
   } else {
     res.status(404).json({ success: false, message: 'Leitor não encontrado.' });
@@ -126,120 +126,79 @@ app.post('/leitores/editar', requireLogin, (req, res) => {
 });
 
 
-// --- ROTAS DE EMPRÉSTIMOS (COM LÓGICA DE ESTOQUE) ---
+// --- ROTAS DE EMPRÉSTIMOS ---
 app.get('/emprestimos/novo', requireLogin, (req, res) => {
-    // Filtra para enviar ao formulário apenas livros que estão disponíveis
-    const livrosDisponiveis = livros.filter(livro => livro.disponivel > 0);
-    res.render('pages/emprestimos_novo', { title: 'Novo Empréstimo', hideSidebar: true, livros: livrosDisponiveis, leitores });
+    const livrosDisponiveis = livros.filter(l => l.disponivel > 0 && l.status === 'ativo');
+    res.render('pages/emprestimos_novo', { title: 'Novo Empréstimo', livros: livrosDisponiveis, leitores, hideSidebar: true });
 });
-
 app.post('/emprestimos/novo', requireLogin, (req, res) => {
-    const { livro: livroTitulo, leitor: leitorCPF, devolucao } = req.body;
-    
-    // Encontra o livro e o leitor nos arrays
+    const { livro: livroTitulo, leitor: leitorCPF } = req.body;
     const livro = livros.find(l => l.titulo === livroTitulo);
     const leitor = leitores.find(l => l.cpf === leitorCPF);
-
-    if (!livro || !leitor) {
-        // Idealmente, aqui enviaríamos uma mensagem de erro para o usuário
-        return res.redirect('/emprestimos');
-    }
-
-    // Verifica se o livro está disponível
-    if (livro.disponivel > 0) {
-        // Diminui a quantidade disponível
-        livro.disponivel -= 1;
-
+    if (livro && leitor && livro.disponivel > 0) {
+        livro.disponivel--;
         const dataInicio = new Date().toISOString().split('T')[0];
-        emprestimos.push({
-            livro: livro.titulo,
-            leitor: leitor.nome,
-            cpf: leitor.cpf,
-            dataInicio,
-            devolucao,
-            status: "pendente"
-        });
+        emprestimos.push({ id: proximoEmprestimoId++, livro: livro.titulo, leitor: leitor.nome, cpf: leitor.cpf, dataInicio, devolucao: req.body.devolucao, status: "pendente" });
+        res.redirect('/emprestimos');
+    } else {
+        res.send("Erro: Livro não disponível ou leitor não encontrado.");
     }
-    
-    res.redirect('/emprestimos');
 });
 
 app.post('/emprestimos/editar', requireLogin, (req, res) => {
-    const { id, devolucao, status: novoStatus } = req.body;
+    const { id, devolucao, status } = req.body;
+    const emprestimoIndex = emprestimos.findIndex(e => e.id == id);
 
-    if (emprestimos[id]) {
-        const emprestimoAntigo = emprestimos[id];
-        const statusAntigo = emprestimoAntigo.status;
-
-        // Lógica para devolução de livro
-        if (statusAntigo === 'pendente' && novoStatus === 'devolvido') {
-            const livro = livros.find(l => l.titulo === emprestimoAntigo.livro);
-            if (livro) {
-                livro.disponivel += 1; // Aumenta a quantidade disponível
-            }
-        }
-        // Lógica para reverter uma devolução (caso o usuário mude de 'devolvido' para 'pendente')
-        else if (statusAntigo === 'devolvido' && novoStatus === 'pendente') {
-             const livro = livros.find(l => l.titulo === emprestimoAntigo.livro);
-             if (livro && livro.disponivel > 0) { // Garante que não fique negativo
-                livro.disponivel -= 1;
-             }
-        }
-        
-        // Atualiza o empréstimo
-        emprestimos[id] = { ...emprestimoAntigo, devolucao, status: novoStatus };
-        res.json({ success: true, message: 'Empréstimo atualizado com sucesso!' });
-
-    } else {
-        res.status(404).json({ success: false, message: 'Empréstimo não encontrado.' });
+    if (emprestimoIndex === -1) {
+        return res.status(404).json({ success: false, message: 'Empréstimo não encontrado.' });
     }
+
+    const emprestimo = emprestimos[emprestimoIndex];
+    const estavaPendente = emprestimo.status === 'pendente';
+    const virouDevolvido = status === 'devolvido';
+    const livro = livros.find(l => l.titulo === emprestimo.livro);
+
+    if (estavaPendente && virouDevolvido && livro) {
+        livro.disponivel++;
+    }
+
+    emprestimo.devolucao = devolucao;
+    emprestimo.status = status;
+    res.json({ success: true, message: 'Empréstimo atualizado com sucesso!' });
 });
 
 
-// --- PÁGINAS INTERNAS ---
-app.get('/home', requireLogin, (req, res) => {
-  res.render('pages/home', { title: 'Home', hideSidebar: false });
-});
+// --- ROTAS DE LISTAGEM E RELATÓRIOS (CORRIGIDAS) ---
 app.get('/livros', requireLogin, (req, res) => {
-  const livrosAtivos = livros.filter(livro => livro.status === 'ativo');
-  res.render('pages/livros', { title: 'Livros', livros: livrosAtivos, hideSidebar: false });
+    res.render('pages/livros', { title: 'Livros', livros: livros.filter(l => l.status === 'ativo'), hideSidebar: false });
 });
+
 app.get('/leitores', requireLogin, (req, res) => {
-  res.render('pages/leitores', { title: 'Leitores', leitores, hideSidebar: false });
+    res.render('pages/leitores', { title: 'Leitores', leitores, hideSidebar: false });
 });
+
 app.get('/emprestimos', requireLogin, (req, res) => {
-  res.render('pages/emprestimos', { title: 'Empréstimos', emprestimos, hideSidebar: false });
+    res.render('pages/emprestimos', { title: 'Empréstimos', emprestimos, hideSidebar: false });
 });
+
 app.get('/relatorios', requireLogin, (req, res) => {
-  const totalLeitores = leitores.length;
-  const emprestimosAbertos = emprestimos.filter(e => e.status === 'pendente').length;
-  res.render('pages/relatorios', {
-    title: 'Relatórios',
-    hideSidebar: false,
-    totalLeitores,
-    emprestimosAbertos
-  });
+    res.render('pages/relatorios', {
+        title: 'Relatórios',
+        totalLeitores: leitores.length,
+        emprestimosAbertos: emprestimos.filter(e => e.status === 'pendente').length,
+        hideSidebar: false
+    });
 });
 
 app.get('/relatorios/pdf', requireLogin, (req, res) => {
   const doc = new PDFDocument({ margin: 50 });
-
-  // Define o nome do arquivo que será baixado
   const filename = `Relatorio-Emprestimos-${new Date().toISOString().slice(0, 10)}.pdf`;
   res.setHeader('Content-disposition', `attachment; filename="${filename}"`);
   res.setHeader('Content-type', 'application/pdf');
-
-  // Conecta o PDF à resposta para o navegador
   doc.pipe(res);
-
-  // --- CONTEÚDO DO PDF ---
-
-  // Cabeçalho do Relatório
   doc.fontSize(18).font('Helvetica-Bold').text('Relatório de Empréstimos Mensal', { align: 'center' });
   doc.fontSize(12).font('Helvetica').text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, { align: 'center' });
   doc.moveDown(2);
-
-  // Títulos da Tabela
   const yPosition = doc.y;
   doc.fontSize(10).font('Helvetica-Bold');
   doc.text('Livro', 50, yPosition);
@@ -247,23 +206,17 @@ app.get('/relatorios/pdf', requireLogin, (req, res) => {
   doc.text('Data Empréstimo', 350, yPosition);
   doc.text('Data Devolução', 450, yPosition);
   doc.moveDown();
-  
-  // Linha divisória
   doc.strokeColor("#aaaaaa").lineWidth(1).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
   doc.moveDown();
-  
-  // Corpo da Tabela
   doc.fontSize(10).font('Helvetica');
   emprestimos.forEach(emp => {
     const rowY = doc.y;
-    doc.text(emp.livro, 50, rowY, { width: 140 }); // Limita a largura para evitar sobreposição
+    doc.text(emp.livro, 50, rowY, { width: 140 });
     doc.text(emp.leitor, 200, rowY, { width: 140 });
     doc.text(app.locals.formatarData(emp.dataInicio), 350, rowY, { width: 90 });
     doc.text(app.locals.formatarData(emp.devolucao), 450, rowY, { width: 90 });
     doc.moveDown();
   });
-
-  
   doc.end();
 });
 

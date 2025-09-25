@@ -1,46 +1,47 @@
+<!-- Cabeçalho da página -->
 <div class="flex justify-between items-center mb-6">
-  <h1 class="text-3xl font-bold text-gray-800">Cadastro de Leitores</h1>
-  <a href="/leitores/novo" class="flex items-center px-4 py-2 font-semibold text-white bg-blue-700 rounded-md hover:bg-blue-800 transition-colors">
+  <h1 class="text-3xl font-bold text-gray-800">Gestão de Leitores</h1>
+  <a href="/leitores/novo" class="flex items-center px-4 py-2 font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 transition-colors shadow-sm hover:shadow-md">
     <i class="ph-bold ph-plus mr-2"></i> Adicionar Leitor
   </a>
 </div>
-<div class="mb-6 flex">
-  <input type="search" id="leitor-search" placeholder="Pesquisar por nome, email ou CPF..." class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+
+<!-- Filtros e Busca -->
+<div class="mb-4">
+  <input type="search" id="leitor-search" placeholder="Pesquisar por nome, email ou CPF..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
 </div>
 
-<!-- Container da Tabela com overflow para responsividade -->
-<div class="bg-white rounded-lg shadow-md overflow-x-auto">
-  <table class="w-full min-w-[640px]" id="tabela-leitores">
-
-    <!-- Cabeçalho com estilo profissional -->
-    <thead class="bg-gray-50">
-      <tr>
-        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nome</th>
-        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">CPF</th>
-        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Ações</th>
-      </tr>
-    </thead>
-
-    <!-- Corpo da tabela com melhor espaçamento e alinhamento -->
-    <tbody class="divide-y divide-gray-200">
-      <% leitores.forEach(leitor => { %>
-        <tr class="hover:bg-gray-50 transition-colors"
-            data-search="<%= leitor.nome %> <%= leitor.email %> <%= leitor.cpf %>">
-          <td class="px-6 py-4 align-middle text-sm text-gray-800"><%= leitor.nome %></td>
-          <td class="px-6 py-4 align-middle text-sm text-gray-600"><%= leitor.cpf %></td>
-          <td class="px-6 py-4 align-middle text-sm text-gray-600"><%= leitor.email %></td>
-          <td class="px-6 py-4 align-middle text-center">
-            <div class="flex justify-center items-center">
-              <i class="ph ph-pencil-simple cursor-pointer text-blue-600 hover:text-blue-800 text-lg"
-                 title="Editar Leitor"
-                 onclick="abrirModalLeitor(<%= JSON.stringify(leitor) %>, <%= leitores.indexOf(leitor) %>)"></i>
-            </div>
-          </td>
+<!-- Container da Tabela com Responsividade -->
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full" id="tabela-leitores">
+      <!-- Cabeçalho da Tabela -->
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nome</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">CPF</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+          <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Ações</th>
         </tr>
-      <% }) %>
-    </tbody>
-  </table>
+      </thead>
+      <!-- Corpo da Tabela -->
+      <tbody class="divide-y divide-gray-200">
+        <% leitores.forEach(leitor => { %>
+          <tr class="hover:bg-gray-50 transition-colors"
+              data-search="<%= leitor.nome %> <%= leitor.email %> <%= leitor.cpf %>">
+            <td class="px-6 py-4 whitespace-nowrap align-middle"><%= leitor.nome %></td>
+            <td class="px-6 py-4 whitespace-nowrap align-middle"><%= leitor.cpf %></td>
+            <td class="px-6 py-4 whitespace-nowrap align-middle"><%= leitor.email %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-center align-middle">
+              <i class="ph ph-pencil-simple text-xl cursor-pointer text-blue-600 hover:text-blue-800 transition-colors"
+                 title="Editar Leitor"
+                 onclick="abrirModalLeitor(<%= JSON.stringify(leitor) %>, '<%= leitor.id %>')"></i>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <%- include("../modals/edit_leitor") %>

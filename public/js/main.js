@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Lógica para Salvar a Edição do Empréstimo
+  // Lógica para Salvar a Edição do Empréstimo (já preparada para receber o erro de validação)
   const formEditEmprestimo = document.getElementById('edit-emprestimo-form');
   if (formEditEmprestimo) {
     formEditEmprestimo.addEventListener('submit', function(event) {
@@ -153,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.success) {
           window.location.reload();
         } else {
+          // Esta linha irá exibir a mensagem de erro da validação de data
           alert('Erro ao atualizar empréstimo: ' + data.message);
         }
       })

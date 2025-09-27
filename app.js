@@ -150,7 +150,7 @@ app.post('/leitores/editar', requireLogin, (req, res) => {
     }
 });
 
-// --- ROTAS DE EMPRÉSTIMOS ---
+// --- ROTAS DE EMPRÉSTIMOS (CORRIGIDAS) ---
 app.get('/emprestimos/novo', requireLogin, (req, res) => {
     const livrosDisponiveis = livros.filter(l => l.disponivel > 0 && l.status === 'ativo');
     res.render('pages/emprestimos_novo', {
@@ -210,6 +210,15 @@ app.post('/emprestimos/novo', requireLogin, (req, res) => {
 app.post('/emprestimos/editar', requireLogin, (req, res) => {
     const { id, devolucao, status } = req.body;
     const emprestimoIndex = emprestimos.findIndex(e => e.id == id);
+    const hoje = new Date().toISOString().split('T')[0];
+
+    // VALIDAÇÃO DE DATA ADICIONADA AQUI
+    if (devolucao <= hoje) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'A nova data de devolução deve ser no futuro!' 
+        });
+    }
 
     if (emprestimoIndex === -1) {
         return res.status(404).json({ success: false, message: 'Empréstimo não encontrado.' });
@@ -230,6 +239,7 @@ app.post('/emprestimos/editar', requireLogin, (req, res) => {
     res.json({ success: true, message: 'Empréstimo atualizado com sucesso!' });
 });
 
+
 // --- ROTAS DE LISTAGEM E RELATÓRIOS ---
 app.get('/livros', requireLogin, (req, res) => {
     const livrosAtivos = livros.filter(livro => livro.status === 'ativo');
@@ -240,27 +250,20 @@ app.get('/leitores', requireLogin, (req, res) => {
     res.render('pages/leitores', { title: 'Leitores', leitores, hideSidebar: false });
 });
 
-// ROTA CORRIGIDA
 app.get('/emprestimos', requireLogin, (req, res) => {
-    // A lógica de "join" para exibir os dados na tabela
     const emprestimosInfo = emprestimos.map(emp => {
-        // Encontra o livro e o leitor correspondentes pelo ID
-        // Usamos '==' em vez de '===' para evitar problemas com tipos (string vs. number)
         const livro = livros.find(l => l.id == emp.livroId);
         const leitor = leitores.find(l => l.id == emp.leitorId);
-
-        // Monta um novo objeto com todas as informações necessárias para a view
         return {
-            ...emp, // Mantém o ID do empréstimo, datas e status
-            livro: livro ? livro.titulo : 'Livro Excluído', // Pega o título do livro
-            leitor: leitor ? leitor.nome : 'Leitor Excluído', // Pega o nome do leitor
-            cpf: leitor ? leitor.cpf : 'N/A' // IMPORTANTE: Pega o CPF para a busca funcionar
+            ...emp,
+            livro: livro ? livro.titulo : 'Livro Excluído',
+            leitor: leitor ? leitor.nome : 'Leitor Excluído',
+            cpf: leitor ? leitor.cpf : 'N/A'
         };
     });
-
     res.render('pages/emprestimos', { 
         title: 'Empréstimos', 
-        emprestimos: emprestimosInfo, // Envia a lista completa e "joinada"
+        emprestimos: emprestimosInfo, 
         hideSidebar: false 
     });
 });

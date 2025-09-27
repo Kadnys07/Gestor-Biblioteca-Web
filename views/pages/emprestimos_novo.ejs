@@ -1,30 +1,46 @@
 <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg mt-10">
   <h2 class="text-2xl font-bold mb-6 text-gray-800">Novo Empréstimo</h2>
+
+  <!-- Bloco para exibir a mensagem de erro -->
+  <% if (erro) { %>
+    <div class="mb-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert">
+      <p class="font-bold">Erro de Validação</p>
+      <p><%= erro %></p>
+    </div>
+  <% } %>
+
   <form action="/emprestimos/novo" method="POST" class="space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label for="livro" class="block text-sm font-medium text-gray-700">Livro Disponível</label>
-        <select id="livro" name="livro" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        <label for="livroId" class="block text-sm font-medium text-gray-700">Livro Disponível</label>
+        <!-- O 'name' agora é 'livroId' -->
+        <select id="livroId" name="livroId" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
           <option value="">Selecione um livro</option>
           <% livros.forEach(livro => { %>
-            <!-- O valor enviado será o título do livro -->
-            <option value="<%= livro.titulo %>"><%= livro.titulo %> (Disp: <%= livro.disponivel %>)</option>
+            <!-- O 'value' agora envia o ID do livro -->
+            <option value="<%= livro.id %>" <%= (valores.livroId == livro.id) ? 'selected' : '' %>>
+              <%= livro.titulo %> (Disp: <%= livro.disponivel %>)
+            </option>
           <% }) %>
         </select>
       </div>
       <div>
-        <label for="leitor" class="block text-sm font-medium text-gray-700">Leitor</label>
-        <select id="leitor" name="leitor" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        <label for="leitorId" class="block text-sm font-medium text-gray-700">Leitor</label>
+        <!-- O 'name' agora é 'leitorId' -->
+        <select id="leitorId" name="leitorId" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
            <option value="">Selecione um leitor</option>
           <% leitores.forEach(leitor => { %>
-            <!-- O valor enviado será o CPF, mas o usuário vê o Nome e o CPF -->
-            <option value="<%= leitor.cpf %>"><%= leitor.nome %> (<%= leitor.cpf %>)</option>
+            <!-- O 'value' agora envia o ID do leitor -->
+            <option value="<%= leitor.id %>" <%= (valores.leitorId == leitor.id) ? 'selected' : '' %>>
+              <%= leitor.nome %> (<%= leitor.cpf %>)
+            </option>
           <% }) %>
         </select>
       </div>
       <div class="md:col-span-2">
         <label for="devolucao" class="block text-sm font-medium text-gray-700">Data de Devolução</label>
-        <input type="date" id="devolucao" name="devolucao" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        <!-- Mantém o valor que o usuário digitou em caso de erro -->
+        <input type="date" id="devolucao" name="devolucao" value="<%= valores.devolucao || '' %>" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
       </div>
     </div>
     <div class="flex justify-end gap-2 pt-4">
@@ -33,3 +49,4 @@
     </div>
   </form>
 </div>
+

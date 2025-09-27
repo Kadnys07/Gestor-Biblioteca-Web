@@ -1,21 +1,19 @@
-<!-- Container principal com espaçamento e sombra -->
-<div class="bg-white p-6 rounded-xl shadow-lg">
-  <!-- Cabeçalho da Seção -->
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-    <h1 class="text-3xl font-bold text-gray-800">Gestão de Leitores</h1>
-    <a href="/leitores/novo" class="flex items-center px-4 py-2 font-semibold text-white bg-blue-700 rounded-md hover:bg-blue-800 transition-colors shadow-sm hover:shadow-md">
-      <i class="ph-bold ph-plus mr-2"></i> Adicionar Leitor
-    </a>
-  </div>
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-3xl font-bold text-gray-800">Gestão de Leitores</h1>
+  <a href="/leitores/novo" class="flex items-center px-4 py-2 font-semibold text-white bg-blue-700 rounded-md hover:bg-blue-800 transition-colors">
+    <i class="ph-bold ph-plus mr-2"></i> Adicionar Leitor
+  </a>
+</div>
 
-  <!-- Barra de Pesquisa -->
-  <div class="mb-4">
-    <input type="search" id="leitor-search" placeholder="Pesquisar por nome, email ou CPF..." class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-  </div>
+<!-- Barra de Filtros Responsiva -->
+<div class="mb-4">
+  <input type="search" id="leitor-search" placeholder="Pesquisar por nome, email ou CPF..." class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition">
+</div>
 
-  <!-- Tabela com Wrapper para Responsividade -->
+<!-- Tabela com Design Aprimorado -->
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
   <div class="overflow-x-auto">
-    <table class="w-full whitespace-nowrap" id="tabela-leitores">
+    <table class="w-full" id="tabela-leitores">
       <thead class="bg-gray-50">
         <tr>
           <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nome</th>
@@ -24,17 +22,19 @@
           <th scope="col" class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Ações</th>
         </tr>
       </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
+      <tbody class="divide-y divide-gray-200">
         <% leitores.forEach(leitor => { %>
           <tr class="hover:bg-gray-50 transition-colors"
               data-search="<%= leitor.nome.toLowerCase() %> <%= leitor.email.toLowerCase() %> <%= leitor.cpf.toLowerCase() %>">
-            <td class="px-6 py-4 align-middle"><%= leitor.nome %></td>
-            <td class="px-6 py-4 align-middle"><%= leitor.cpf %></td>
-            <td class="px-6 py-4 align-middle"><%= leitor.email %></td>
-            <td class="px-6 py-4 flex justify-center items-center space-x-4 align-middle">
-              <i class="ph ph-pencil-simple text-xl cursor-pointer text-blue-600 hover:text-blue-800 transition-colors"
-                 title="Editar Leitor"
-                 onclick="abrirModalLeitor(<%= JSON.stringify(leitor) %>, '<%= leitor.id %>')"></i>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><%= leitor.nome %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><%= leitor.cpf %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><%= leitor.email %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+              <div class="flex justify-center items-center gap-x-4">
+                <i class="ph ph-pencil-simple text-xl cursor-pointer text-blue-600 hover:text-blue-800 transition-colors"
+                   title="Editar Leitor"
+                   onclick="abrirModalLeitor(<%= JSON.stringify(leitor) %>, '<%= leitor.id %>')"></i>
+              </div>
             </td>
           </tr>
         <% }) %>

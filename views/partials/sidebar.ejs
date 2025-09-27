@@ -1,16 +1,11 @@
-<!--
-  ID adicionado: 'sidebar' para ser alvo do JavaScript.
-  Classes de Posição/Transformação:
-  - 'fixed inset-0 z-40': Posiciona o menu sobre tudo, ocupando a tela inteira.
-  - 'transform -translate-x-full': Esconde o menu para a esquerda fora da tela por padrão.
-  Classes Responsivas:
-  - 'lg:relative lg:translate-x-0': Em telas grandes (lg), remove o posicionamento fixo,
-    voltando ao fluxo normal do layout e tornando-o visível.
-  Classes de Transição:
-  - 'transition-transform duration-300 ease-in-out': Adiciona uma animação suave de deslize.
+<!-- 
+  A sidebar agora usa 'transform' para se mover.
+  -translate-x-full: Escondida fora da tela à esquerda.
+  transform-none: Na sua posição normal.
+  As classes lg:* garantem que ela se comporte de forma diferente em telas grandes.
 -->
-<aside id="sidebar" class="w-64 bg-green-800 text-white flex flex-col fixed inset-0 z-40 transform -translate-x-full transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0">
-  <div class="h-16 flex items-center justify-center text-2xl font-bold">
+<aside id="sidebar" class="w-64 bg-green-800 text-white flex flex-col fixed inset-y-0 left-0 z-30 transform -translate-x-full lg:relative lg:translate-x-0">
+  <div class="h-16 flex items-center justify-center text-2xl font-bold border-b border-green-700">
     <i class="ph-bold ph-books mr-2"></i>
     Gestor
   </div>
@@ -37,3 +32,4 @@
     </a>
   </div>
 </aside>
+

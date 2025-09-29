@@ -17,15 +17,16 @@ let livros = [
     { id: proximoLivroId++, titulo: "1984", autor: "George Orwell", genero: "Distopia", disponivel: 5, status: 'ativo' },
     { id: proximoLivroId++, titulo: "Dom Casmurro", autor: "Machado de Assis", genero: "Romance", disponivel: 0, status: 'ativo' }
 ];
+// Dados iniciais com formato limpo (sem máscaras)
 let leitores = [
     {
         id: proximoLeitorId++,
         nome: "Ana Silva",
-        cpf: "111.222.333-44",
+        cpf: "11122233344",
         nascimento: "1990-01-01",
-        celular: "(11) 91234-5678",
+        celular: "11912345678",
         email: "ana.silva@email.com",
-        cep: "12345-678",
+        cep: "12345678",
         endereco: "Rua das Flores, 123"
     }
 ];
@@ -130,27 +131,75 @@ app.get('/leitores/novo', requireLogin, (req, res) => {
     res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true, erro: null, valores: {} });
 });
 
+// ROTA DE CRIAÇÃO COM VALIDAÇÃO DE DUPLICIDADE
 app.post('/leitores/novo', requireLogin, (req, res) => {
     const { nome, cpf, nascimento, celular, email, cep, endereco } = req.body;
+
+    const cpfLimpo = (cpf || '').replace(/\D/g, '');
+    if (cpfLimpo.length !== 11) {
+        return res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true, erro: 'CPF inválido. Deve conter 11 números.', valores: req.body });
+    }
+
+    const celularLimpo = (celular || '').replace(/\D/g, '');
+    if (celularLimpo.length < 10 || celularLimpo.length > 11) {
+        return res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true, erro: 'Número de celular inválido. Deve conter 10 ou 11 números (com DDD).', valores: req.body });
+    }
+
+    if (leitores.some(leitor => leitor.cpf === cpfLimpo)) {
+        return res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true, erro: 'Este CPF já está cadastrado.', valores: req.body });
+    }
+    if (leitores.some(leitor => leitor.email.toLowerCase() === email.toLowerCase())) {
+        return res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true, erro: 'Este email já está cadastrado.', valores: req.body });
+    }
+    
     leitores.push({
         id: proximoLeitorId++,
-        nome, cpf, nascimento, celular, email, cep, endereco
+        nome,
+        cpf: cpfLimpo,
+        nascimento,
+        celular: celularLimpo,
+        email,
+        cep: (cep || '').replace(/\D/g, ''),
+        endereco
     });
     res.redirect('/leitores');
 });
 
+
+// ROTA DE EDIÇÃO COM VALIDAÇÃO DE DUPLICIDADE
 app.post('/leitores/editar', requireLogin, (req, res) => {
     const { id, nome, cpf, nascimento, celular, email, cep, endereco } = req.body;
+
+    const cpfLimpo = (cpf || '').replace(/\D/g, '');
+    if (cpfLimpo.length !== 11) {
+        return res.status(400).json({ success: false, message: 'CPF inválido. Deve conter 11 números.' });
+    }
+
+    const celularLimpo = (celular || '').replace(/\D/g, '');
+    if (celularLimpo.length < 10 || celularLimpo.length > 11) {
+        return res.status(400).json({ success: false, message: 'Celular inválido. Deve conter 10 ou 11 números (com DDD).' });
+    }
+
+    if (leitores.some(leitor => leitor.cpf === cpfLimpo && leitor.id != id)) {
+        return res.status(400).json({ success: false, message: 'Este CPF já pertence a outro leitor.' });
+    }
+    if (leitores.some(leitor => leitor.email.toLowerCase() === email.toLowerCase() && leitor.id != id)) {
+        return res.status(400).json({ success: false, message: 'Este email já pertence a outro leitor.' });
+    }
+
     const leitorIndex = leitores.findIndex(l => l.id == id);
     if (leitorIndex !== -1) {
-        leitores[leitorIndex] = { id: Number(id), nome, cpf, nascimento, celular, email, cep, endereco };
+        leitores[leitorIndex] = { 
+            id: Number(id), nome, cpf: cpfLimpo, nascimento, celular: celularLimpo, email, cep: (cep || '').replace(/\D/g, ''), endereco 
+        };
         res.json({ success: true, message: 'Leitor atualizado com sucesso!' });
     } else {
         res.status(404).json({ success: false, message: 'Leitor não encontrado.' });
     }
 });
 
-// --- ROTAS DE EMPRÉSTIMOS (CORRIGIDAS) ---
+
+// --- ROTAS DE EMPRÉSTIMOS ---
 app.get('/emprestimos/novo', requireLogin, (req, res) => {
     const livrosDisponiveis = livros.filter(l => l.disponivel > 0 && l.status === 'ativo');
     res.render('pages/emprestimos_novo', {
@@ -184,7 +233,7 @@ app.post('/emprestimos/novo', requireLogin, (req, res) => {
 
     if (livro && leitor && livro.disponivel > 0) {
         livro.disponivel--;
-        const dataInicio = hoje;
+        const dataInicio = hoje; // LINHA MOVIDA PARA O LUGAR CORRETO
         emprestimos.push({
             id: proximoEmprestimoId++,
             livroId: Number(livroId),
@@ -210,15 +259,6 @@ app.post('/emprestimos/novo', requireLogin, (req, res) => {
 app.post('/emprestimos/editar', requireLogin, (req, res) => {
     const { id, devolucao, status } = req.body;
     const emprestimoIndex = emprestimos.findIndex(e => e.id == id);
-    const hoje = new Date().toISOString().split('T')[0];
-
-    // VALIDAÇÃO DE DATA ADICIONADA AQUI
-    if (devolucao <= hoje) {
-        return res.status(400).json({ 
-            success: false, 
-            message: 'A nova data de devolução deve ser no futuro!' 
-        });
-    }
 
     if (emprestimoIndex === -1) {
         return res.status(404).json({ success: false, message: 'Empréstimo não encontrado.' });
@@ -226,10 +266,10 @@ app.post('/emprestimos/editar', requireLogin, (req, res) => {
 
     const emprestimo = emprestimos[emprestimoIndex];
     const estavaPendente = emprestimo.status === 'pendente';
-    const virouDevolvido = status === 'devolvido';
+    const virouDevolido = status === 'devolvido';
     const livro = livros.find(l => l.id == emprestimo.livroId);
 
-    if (estavaPendente && virouDevolvido && livro) {
+    if (estavaPendente && virouDevolido && livro) {
         livro.disponivel++;
     }
     
@@ -238,7 +278,6 @@ app.post('/emprestimos/editar', requireLogin, (req, res) => {
 
     res.json({ success: true, message: 'Empréstimo atualizado com sucesso!' });
 });
-
 
 // --- ROTAS DE LISTAGEM E RELATÓRIOS ---
 app.get('/livros', requireLogin, (req, res) => {
@@ -254,6 +293,7 @@ app.get('/emprestimos', requireLogin, (req, res) => {
     const emprestimosInfo = emprestimos.map(emp => {
         const livro = livros.find(l => l.id == emp.livroId);
         const leitor = leitores.find(l => l.id == emp.leitorId);
+
         return {
             ...emp,
             livro: livro ? livro.titulo : 'Livro Excluído',
@@ -261,9 +301,10 @@ app.get('/emprestimos', requireLogin, (req, res) => {
             cpf: leitor ? leitor.cpf : 'N/A'
         };
     });
+
     res.render('pages/emprestimos', { 
         title: 'Empréstimos', 
-        emprestimos: emprestimosInfo, 
+        emprestimos: emprestimosInfo,
         hideSidebar: false 
     });
 });

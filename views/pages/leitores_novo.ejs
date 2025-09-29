@@ -1,39 +1,62 @@
 <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg mt-10">
   <h2 class="text-2xl font-bold mb-6 text-gray-800">Adicionar Novo Leitor</h2>
+
+  <!-- Bloco para exibir a mensagem de erro vinda do servidor -->
+  <% if (typeof erro !== 'undefined' && erro) { %>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
+      <strong class="font-bold">Erro de Validação:</strong>
+      <span class="block sm:inline"><%= erro %></span>
+    </div>
+  <% } %>
+
   <form action="/leitores/novo" method="POST" class="space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label for="nome" class="block text-sm font-medium text-gray-700">Nome</label>
-        <input type="text" id="nome" name="nome" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        <label for="nome" class="block text-sm font-medium text-gray-700">Nome Completo</label>
+        <!-- Mantém o valor preenchido em caso de erro -->
+        <input type="text" id="nome" name="nome" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="<%= typeof valores !== 'undefined' ? valores.nome : '' %>">
       </div>
       <div>
         <label for="cpf" class="block text-sm font-medium text-gray-700">CPF</label>
-        <input type="text" id="cpf" name="cpf" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        <!-- Validação no Front-end: Apenas números, com máscara visual para o usuário -->
+        <input type="text" id="cpf" name="cpf" required 
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
+               pattern="\d{3}\.?\d{3}\.?\d{3}-?\d{2}"
+               title="Digite um CPF válido (apenas números ou com máscara)."
+               placeholder="000.000.000-00"
+               value="<%= typeof valores !== 'undefined' ? valores.cpf : '' %>">
       </div>
       <div>
         <label for="nascimento" class="block text-sm font-medium text-gray-700">Data de Nascimento</label>
-        <input type="date" id="nascimento" name="nascimento" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        <input type="date" id="nascimento" name="nascimento" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="<%= typeof valores !== 'undefined' ? valores.nascimento : '' %>">
       </div>
       <div>
-        <label for="celular" class="block text-sm font-medium text-gray-700">Nº Celular</label>
-        <input type="tel" id="celular" name="celular" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        <label for="celular" class="block text-sm font-medium text-gray-700">Nº Celular (com DDD)</label>
+        <!-- Validação no Front-end: Apenas números, 10 ou 11 dígitos -->
+        <input type="tel" id="celular" name="celular" required 
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+               pattern="\d{10,11}"
+               title="Digite um número de celular válido com DDD (apenas números)."
+               placeholder="11999998888"
+               value="<%= typeof valores !== 'undefined' ? valores.celular : '' %>">
       </div>
       <div>
         <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-        <input type="email" id="email" name="email" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        <input type="email" id="email" name="email" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="<%= typeof valores !== 'undefined' ? valores.email : '' %>">
       </div>
       <div>
         <label for="cep" class="block text-sm font-medium text-gray-700">CEP</label>
-        <input type="text" id="cep" name="cep" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        <input type="text" id="cep" name="cep" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="<%= typeof valores !== 'undefined' ? valores.cep : '' %>">
       </div>
       <div class="md:col-span-2">
         <label for="endereco" class="block text-sm font-medium text-gray-700">Endereço</label>
-        <input type="text" id="endereco" name="endereco" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        <input type="text" id="endereco" name="endereco" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="<%= typeof valores !== 'undefined' ? valores.endereco : '' %>">
       </div>
     </div>
     <div class="flex justify-end gap-2 pt-4">
       <a href="/leitores" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Cancelar</a>
-      <button type="submit" class="px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800">Finalizar Cadastro</button>
+      <button type="submit" class="px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800">Salvar</button>
     </div>
   </form>
 </div>
+

@@ -1,11 +1,12 @@
 <!-- 
-  A sidebar agora usa 'transform' para se mover.
-  -translate-x-full: Escondida fora da tela à esquerda.
-  transform-none: Na sua posição normal.
-  As classes lg:* garantem que ela se comporte de forma diferente em telas grandes.
+  ID="sidebar" é crucial para que o JavaScript (main.js) possa encontrar este elemento.
+  As classes de 'transform' e 'transition' criam o efeito de deslize.
+  '-translate-x-full' esconde o menu para a esquerda por padrão em telas pequenas.
 -->
-<aside id="sidebar" class="w-64 bg-green-800 text-white flex flex-col fixed inset-y-0 left-0 z-30 transform -translate-x-full lg:relative lg:translate-x-0">
-  <div class="h-16 flex items-center justify-center text-2xl font-bold border-b border-green-700">
+<aside id="sidebar" class="w-64 bg-green-800 text-white flex flex-col fixed inset-y-0 left-0 z-40
+                           transform -translate-x-full transition-transform duration-300 ease-in-out
+                           lg:relative lg:translate-x-0">
+  <div class="h-16 flex items-center justify-center text-2xl font-bold">
     <i class="ph-bold ph-books mr-2"></i>
     Gestor
   </div>

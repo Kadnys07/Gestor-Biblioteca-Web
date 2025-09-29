@@ -1,61 +1,57 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="h-full bg-gray-100">
+
 <head>
+  <!-- CAMINHO CORRIGIDO -->
   <%- include("partials/header") %>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+  
   <style>
-    /* Garante que o scroll vertical ocorra apenas na área de conteúdo, evitando scroll duplo */
-    .main-content {
-      height: calc(100vh - 4rem); /* Altura da tela menos a altura do header mobile (1rem = 16px) */
+    body {
+      font-family: 'Inter', sans-serif;
     }
-    @media (min-width: 1024px) { /* Breakpoint 'lg' do Tailwind */
-      .main-content {
-        height: 100vh; /* Em telas grandes, o conteúdo volta a ocupar a altura total */
-      }
+    .ts-control {
+      border-radius: 0.375rem;
+      border-color: #d1d5db;
     }
   </style>
 </head>
-<body class="bg-gray-100 antialiased">
 
+<body class="h-full overflow-hidden">
   <% if (!hideSidebar) { %>
-    <div class="relative min-h-screen lg:flex">
-      
-      <!-- Overlay que aparece com o menu mobile para permitir o fechamento ao clicar fora -->
-      <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
-
-      <!-- Sidebar (Menu Lateral) que agora é responsiva -->
+    <div class="flex h-full">
+      <!-- CAMINHO CORRIGIDO -->
       <%- include("partials/sidebar") %>
 
-      <!-- Conteúdo Principal -->
-      <div class="flex-1 flex flex-col">
-
-        <!-- Header Mobile com Botão Hambúrguer (só aparece em telas pequenas) -->
-        <header class="p-4 bg-white shadow-md flex justify-between items-center lg:hidden">
-          <div class="text-xl font-bold text-gray-800">
-            <%= title %>
+      <div class="flex flex-col flex-1">
+        <header class="lg:hidden bg-white shadow-sm flex items-center justify-between p-4">
+          <div class="flex items-center text-xl font-bold text-gray-800">
+            <i class="ph-bold ph-books mr-2 text-green-700"></i>
+            Gestor Biblioteca
           </div>
-          <button id="hamburger-button" class="text-gray-600 focus:outline-none" aria-label="Abrir menu">
-            <i class="ph-bold ph-list text-3xl"></i>
+          <button id="hamburger-button" class="text-gray-600 hover:text-gray-900">
+            <i class="ph-bold ph-list text-2xl"></i>
           </button>
         </header>
 
-        <!-- Container do conteúdo principal com sua própria barra de rolagem -->
-        <main class="p-6 main-content overflow-y-auto">
+        <main class="flex-1 p-6 overflow-y-auto">
           <%- body %>
         </main>
       </div>
-
     </div>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
   <% } else { %>
-    <!-- Layout para telas sem sidebar (como a de login) -->
-    <main class="min-h-screen flex items-center justify-center p-6">
+    <main class="h-full flex items-center justify-center p-6 bg-gray-100">
       <%- body %>
     </main>
   <% } %>
   
   <script src="/js/main.js"></script>
-
 </body>
 </html>
+

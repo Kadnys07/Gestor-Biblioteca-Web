@@ -8,19 +8,18 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // --- DADOS E IDs ---
-let proximoLivroId = 1;
-let proximoLeitorId = 1;
-let proximoEmprestimoId = 1;
+let proximoLivroId = 4; // Ajustado para refletir os dados iniciais
+let proximoLeitorId = 2; // Ajustado para refletir os dados iniciais
+let proximoEmprestimoId = 2; // Ajustado para refletir os dados iniciais
 
 let livros = [
-    { id: proximoLivroId++, titulo: "O Senhor dos Anéis", autor: "J.R.R. Tolkien", genero: "Fantasia", disponivel: 3, status: 'ativo' },
-    { id: proximoLivroId++, titulo: "1984", autor: "George Orwell", genero: "Distopia", disponivel: 5, status: 'ativo' },
-    { id: proximoLivroId++, titulo: "Dom Casmurro", autor: "Machado de Assis", genero: "Romance", disponivel: 0, status: 'ativo' }
+    { id: 1, titulo: "O Senhor dos Anéis", autor: "J.R.R. Tolkien", genero: "Fantasia", disponivel: 3, status: 'ativo' },
+    { id: 2, titulo: "1984", autor: "George Orwell", genero: "Distopia", disponivel: 5, status: 'ativo' },
+    { id: 3, titulo: "Dom Casmurro", autor: "Machado de Assis", genero: "Romance", disponivel: 0, status: 'ativo' }
 ];
-// Dados iniciais com formato limpo (sem máscaras)
 let leitores = [
     {
-        id: proximoLeitorId++,
+        id: 1,
         nome: "Ana Silva",
         cpf: "11122233344",
         nascimento: "1990-01-01",
@@ -32,7 +31,7 @@ let leitores = [
 ];
 let emprestimos = [
     {
-        id: proximoEmprestimoId++,
+        id: 1,
         livroId: 1, 
         leitorId: 1, 
         dataInicio: "2024-07-01",
@@ -40,6 +39,24 @@ let emprestimos = [
         status: "pendente"
     }
 ];
+
+// --- FUNÇÕES AUXILIARES ---
+/**
+ * Calcula a idade com base na data de nascimento.
+ * @param {string} dataNascimento - A data no formato 'AAAA-MM-DD'.
+ * @returns {number} A idade calculada.
+ */
+function calcularIdade(dataNascimento) {
+    if (!dataNascimento) return 0;
+    const hoje = new Date();
+    const nascimento = new Date(dataNascimento);
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
+    const m = hoje.getMonth() - nascimento.getMonth();
+    if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+        idade--;
+    }
+    return idade;
+}
 
 
 // --- CONFIGURAÇÃO E MIDDLEWARES ---
@@ -104,12 +121,24 @@ app.get('/livros/novo', requireLogin, (req, res) => {
 
 app.post('/livros/novo', requireLogin, (req, res) => {
     const { titulo, autor, genero, disponivel } = req.body;
+    
+    // ARQUITETO: VALIDAÇÃO DE INTEGRIDADE DE DADOS
+    const quantidade = Number(disponivel);
+    if (isNaN(quantidade) || quantidade < 0 || !Number.isInteger(quantidade)) {
+        return res.render('pages/livros_novo', {
+            title: 'Novo Livro',
+            hideSidebar: true,
+            erro: 'A quantidade disponível deve ser um número inteiro maior ou igual a zero.',
+            valores: req.body
+        });
+    }
+
     livros.push({
         id: proximoLivroId++,
         titulo,
         autor,
         genero,
-        disponivel: Number(disponivel),
+        disponivel: quantidade,
         status: 'ativo'
     });
     res.redirect('/livros');
@@ -117,10 +146,21 @@ app.post('/livros/novo', requireLogin, (req, res) => {
 
 app.post('/livros/editar', requireLogin, (req, res) => {
     const { id, titulo, autor, genero, disponivel } = req.body;
+    
+    // ARQUITETO: VALIDAÇÃO DE INTEGRIDADE DE DADOS
+    const quantidade = Number(disponivel);
+    if (isNaN(quantidade) || quantidade < 0 || !Number.isInteger(quantidade)) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'A quantidade disponível deve ser um número inteiro maior ou igual a zero.' 
+        });
+    }
+
     const livroIndex = livros.findIndex(l => l.id == id);
     if (livroIndex !== -1) {
-        livros[livroIndex] = { ...livros[livroIndex], id: Number(id), titulo, autor, genero, disponivel: Number(disponivel) };
-        res.json({ success: true, message: 'Livro atualizado com sucesso!' });
+        livros[livroIndex] = { ...livros[livroIndex], id: Number(id), titulo, autor, genero, disponivel: quantidade };
+        // ARQUITETO: Retornando o objeto atualizado para otimizações futuras no front-end
+        res.json({ success: true, message: 'Livro atualizado com sucesso!', livro: livros[livroIndex] });
     } else {
         res.status(404).json({ success: false, message: 'Livro não encontrado.' });
     }
@@ -131,9 +171,18 @@ app.get('/leitores/novo', requireLogin, (req, res) => {
     res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true, erro: null, valores: {} });
 });
 
-// ROTA DE CRIAÇÃO COM VALIDAÇÃO DE DUPLICIDADE
 app.post('/leitores/novo', requireLogin, (req, res) => {
     const { nome, cpf, nascimento, celular, email, cep, endereco } = req.body;
+
+    // ARQUITETO: VALIDAÇÃO DE IDADE
+    const idade = calcularIdade(nascimento);
+    if (!nascimento || idade < 5 || idade > 120) {
+        return res.render('pages/leitores_novo', { 
+            title: 'Novo Leitor', hideSidebar: true, 
+            erro: 'Data de nascimento inválida. O leitor deve ter entre 5 e 120 anos.', 
+            valores: req.body 
+        });
+    }
 
     const cpfLimpo = (cpf || '').replace(/\D/g, '');
     if (cpfLimpo.length !== 11) {
@@ -166,9 +215,17 @@ app.post('/leitores/novo', requireLogin, (req, res) => {
 });
 
 
-// ROTA DE EDIÇÃO COM VALIDAÇÃO DE DUPLICIDADE
 app.post('/leitores/editar', requireLogin, (req, res) => {
     const { id, nome, cpf, nascimento, celular, email, cep, endereco } = req.body;
+
+    // ARQUITETO: VALIDAÇÃO DE IDADE
+    const idade = calcularIdade(nascimento);
+    if (!nascimento || idade < 5 || idade > 120) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Data de nascimento inválida. O leitor deve ter entre 5 e 120 anos.' 
+        });
+    }
 
     const cpfLimpo = (cpf || '').replace(/\D/g, '');
     if (cpfLimpo.length !== 11) {
@@ -192,7 +249,8 @@ app.post('/leitores/editar', requireLogin, (req, res) => {
         leitores[leitorIndex] = { 
             id: Number(id), nome, cpf: cpfLimpo, nascimento, celular: celularLimpo, email, cep: (cep || '').replace(/\D/g, ''), endereco 
         };
-        res.json({ success: true, message: 'Leitor atualizado com sucesso!' });
+        // ARQUITETO: Retornando o objeto atualizado para otimizações futuras no front-end
+        res.json({ success: true, message: 'Leitor atualizado com sucesso!', leitor: leitores[leitorIndex] });
     } else {
         res.status(404).json({ success: false, message: 'Leitor não encontrado.' });
     }
@@ -233,7 +291,7 @@ app.post('/emprestimos/novo', requireLogin, (req, res) => {
 
     if (livro && leitor && livro.disponivel > 0) {
         livro.disponivel--;
-        const dataInicio = hoje; // LINHA MOVIDA PARA O LUGAR CORRETO
+        const dataInicio = hoje;
         emprestimos.push({
             id: proximoEmprestimoId++,
             livroId: Number(livroId),
@@ -258,6 +316,16 @@ app.post('/emprestimos/novo', requireLogin, (req, res) => {
 
 app.post('/emprestimos/editar', requireLogin, (req, res) => {
     const { id, devolucao, status } = req.body;
+    
+    // ARQUITETO: VALIDAÇÃO DE INTEGRIDADE DE DADOS
+    const hoje = new Date().toISOString().split('T')[0];
+    if (devolucao < hoje && status === 'pendente') {
+         return res.status(400).json({
+            success: false,
+            message: 'A data de devolução de um empréstimo pendente não pode ser no passado.'
+        });
+    }
+
     const emprestimoIndex = emprestimos.findIndex(e => e.id == id);
 
     if (emprestimoIndex === -1) {
@@ -276,7 +344,14 @@ app.post('/emprestimos/editar', requireLogin, (req, res) => {
     emprestimo.devolucao = devolucao;
     emprestimo.status = status;
 
-    res.json({ success: true, message: 'Empréstimo atualizado com sucesso!' });
+    // ARQUITETO: Preparando os dados para a atualização dinâmica da UI
+    const emprestimoInfo = {
+        ...emprestimo,
+        livro: livro ? livro.titulo : 'Livro Excluído',
+        leitor: leitores.find(l => l.id == emprestimo.leitorId)?.nome || 'Leitor Excluído'
+    };
+
+    res.json({ success: true, message: 'Empréstimo atualizado com sucesso!', emprestimo: emprestimoInfo });
 });
 
 // --- ROTAS DE LISTAGEM E RELATÓRIOS ---
@@ -356,4 +431,3 @@ app.get('/relatorios/pdf', requireLogin, (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
-

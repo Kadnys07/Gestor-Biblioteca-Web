@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebar.classList.toggle('-translate-x-full');
             sidebarOverlay.classList.toggle('hidden');
         });
-
         sidebarOverlay.addEventListener('click', () => {
             sidebar.classList.toggle('-translate-x-full');
             sidebarOverlay.classList.toggle('hidden');
@@ -22,10 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
         new TomSelect(leitorSelectSearch, {
             options: window.listaDeLeitores,
             create: false,
-            sortField: {
-                field: "text",
-                direction: "asc"
-            }
+            maxItems: 1,
+            sortField: { field: "text", direction: "asc" }
         });
     }
 
@@ -42,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- LÓGICA PARA SALVAR EDIÇÕES ---
 
-    // Função auxiliar para tratar erros de fetch de forma padronizada
     function handleFetchErrors(response) {
         if (!response.ok) {
             return response.json().then(err => { throw err; });
@@ -73,8 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             })
             .catch(err => {
-                console.error('Erro:', err);
-                alert('Erro: ' + (err.message || 'Ocorreu um erro de comunicação.'));
+                console.error('Erro ao editar livro:', err);
+                // ARQUITETO: Substituído alert por feedback no modal.
+                showModalError('edit-livro-error', err.message || 'Ocorreu um erro de comunicação.');
             });
         });
     }
@@ -105,8 +102,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             })
             .catch(err => {
-                console.error('Erro:', err);
-                alert('Erro de Validação: ' + (err.message || 'Ocorreu um erro.'));
+                console.error('Erro ao editar leitor:', err);
+                // ARQUITETO: Substituído alert por feedback no modal.
+                showModalError('edit-leitor-error', err.message || 'Ocorreu um erro de comunicação.');
             });
         });
     }
@@ -132,14 +130,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             })
             .catch(err => {
-                console.error('Erro:', err);
-                alert('Erro: ' + (err.message || 'Ocorreu um erro de comunicação.'));
+                console.error('Erro ao editar empréstimo:', err);
+                // ARQUITETO: Substituído alert por feedback no modal.
+                showModalError('edit-emprestimo-error', err.message || 'Ocorreu um erro de comunicação.');
             });
         });
     }
 });
 
-// --- FUNÇÕES GLOBAIS (FORA DO DOMCONTENTLOADED) ---
+// --- FUNÇÕES GLOBAIS ---
 
 function setupTableFilter(tableId, searchInputId, statusFilterId) {
     const searchInput = document.getElementById(searchInputId);
@@ -156,11 +155,7 @@ function setupTableFilter(tableId, searchInputId, statusFilterId) {
             const matchesSearch = searchData.includes(searchTerm);
             const matchesStatus = (statusTerm === 'todos') || (statusData === statusTerm);
 
-            if (matchesSearch && matchesStatus) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+            row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
         });
     }
 
@@ -168,8 +163,26 @@ function setupTableFilter(tableId, searchInputId, statusFilterId) {
     if (statusSelect) statusSelect.addEventListener('change', filterRows);
 }
 
-// Funções para abrir modais precisam ser globais para serem chamadas pelo onclick no HTML
+// ARQUITETO: Funções auxiliares para manipular mensagens de erro nos modais.
+function showModalError(errorElementId, message) {
+    const errorDiv = document.getElementById(errorElementId);
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('hidden');
+    }
+}
+
+function hideModalError(errorElementId) {
+    const errorDiv = document.getElementById(errorElementId);
+    if (errorDiv) {
+        errorDiv.textContent = '';
+        errorDiv.classList.add('hidden');
+    }
+}
+
+// Funções para abrir e fechar modais
 window.abrirModalLivro = function(livro, id) {
+    hideModalError('edit-livro-error'); // Limpa erros antigos ao abrir
     document.getElementById('edit-livro-id').value = id;
     document.getElementById('edit-livro-nome').value = livro.titulo;
     document.getElementById('edit-livro-autor').value = livro.autor;
@@ -182,6 +195,7 @@ window.closeEditLivroModal = function() {
 };
 
 window.abrirModalLeitor = function(leitor, id) {
+    hideModalError('edit-leitor-error'); // Limpa erros antigos ao abrir
     document.getElementById('edit-leitor-id').value = id;
     document.getElementById('edit-leitor-nome-completo').value = leitor.nome;
     document.getElementById('edit-leitor-cpf').value = leitor.cpf;
@@ -197,6 +211,7 @@ window.closeEditLeitorModal = function() {
 };
 
 window.abrirModalEmprestimo = function(emp, id) {
+    hideModalError('edit-emprestimo-error'); // Limpa erros antigos ao abrir
     document.getElementById('edit-emprestimo-id').value = id;
     document.getElementById('modal-livro-info').textContent = emp.livro;
     document.getElementById('modal-leitor-info').textContent = emp.leitor;

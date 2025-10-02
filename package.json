@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "cpf-cnpj-validator": "^1.0.3",
     "ejs": "^3.1.10",
     "express": "^5.1.0",

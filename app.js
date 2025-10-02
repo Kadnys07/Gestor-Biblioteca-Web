@@ -3,9 +3,10 @@ const path = require('path');
 const expressLayouts = require('express-ejs-layouts');
 const session = require('express-session');
 const PDFDocument = require('pdfkit');
-// ARQUITETO: Importação das bibliotecas de validação.
-const { cpf } = require('cpf-cnpj-validator'); 
+const { cpf } = require('cpf-cnpj-validator');
 const validator = require('validator');
+// ARQUITETO: Bcrypt temporariamente removido para simplificar o diagnóstico de login.
+// const bcrypt = require('bcrypt');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,11 +24,14 @@ function calcularIdade(dataNascimento) {
     return idade;
 }
 
-// --- DADOS E IDs (Simulação de Banco de Dados) ---
-let proximoLivroId = 4;
-let proximoLeitorId = 2;
-let proximoEmprestimoId = 2;
+// --- DADOS E IDs ---
+const adminUser = {
+    email: 'gestor@biblioteca.com',
+    // ARQUITETO: Senha em texto plano para depuração. Será substituída por hash na fase de BD.
+    password: 'gestor123'
+};
 
+let proximoLivroId = 4, proximoLeitorId = 2, proximoEmprestimoId = 2;
 let livros = [
     { id: 1, titulo: "O Senhor dos Anéis", autor: "J.R.R. Tolkien", genero: "Fantasia", disponivel: 3, status: 'ativo' },
     { id: 2, titulo: "1984", autor: "George Orwell", genero: "Distopia", disponivel: 5, status: 'ativo' },
@@ -48,42 +52,46 @@ app.set('layout', 'layout');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(session({
-    secret: 'biblioteca-secret',
-    resave: false,
-    saveUninitialized: false
-}));
+app.use(session({ secret: 'biblioteca-secret', resave: false, saveUninitialized: false }));
 app.locals.formatarData = function(data) {
     if (!data) return '';
     const [ano, mes, dia] = data.split('T')[0].split('-');
     return `${dia}/${mes}/${ano}`;
 };
 function requireLogin(req, res, next) {
-    if (req.session && req.session.logado) {
-        next();
-    } else {
-        res.redirect('/login');
-    }
+    if (req.session && req.session.logado) { next(); } else { res.redirect('/login'); }
 }
 
-// --- ROTAS DE AUTENTICAÇÃO E NAVEGAÇÃO ---
+// --- ROTAS ---
 app.get('/', (req, res) => res.redirect('/login'));
 app.get('/login', (req, res) => res.render('pages/login', { title: 'Login', erro: null, hideSidebar: true }));
-app.post('/login', (req, res) => {
+
+// ARQUITETO: Rota de login simplificada para garantir o funcionamento.
+app.post('/login', async (req, res) => {
     const { email, senha } = req.body;
-    if (email === 'gestor@biblioteca.com' && senha === '123456') {
+
+    console.log('\n--- DIAGNÓSTICO DE TENTATIVA DE LOGIN (SIMPLIFICADO) ---');
+    console.log(`[${new Date().toLocaleTimeString()}] Rota /login foi acionada.`);
+    console.log('Dados recebidos -> Email:', email, '| Senha:', senha);
+    console.log('Dados esperados -> Email:', adminUser.email, '| Senha:', adminUser.password);
+
+    if (email && email.toLowerCase() === adminUser.email && senha === adminUser.password) {
+        console.log('-> SUCESSO: Credenciais correspondem. A criar sessão.');
         req.session.logado = true;
-        res.redirect('/home');
+        return res.redirect('/home');
     } else {
-        res.render('pages/login', { title: 'Login', erro: 'Utilizador ou senha inválidos!', hideSidebar: true });
+        console.log('-> FALHA: Email ou senha incorretos.');
     }
+
+    res.render('pages/login', { title: 'Login', erro: 'Utilizador ou senha inválidos!', hideSidebar: true });
 });
-app.get('/logout', (req, res) => {
-    req.session.destroy(() => { res.redirect('/login'); });
-});
+
+app.get('/logout', (req, res) => { req.session.destroy(() => { res.redirect('/login'); }); });
 app.get('/home', requireLogin, (req, res) => res.render('pages/home', { title: 'Home', hideSidebar: false }));
 
-// --- ROTAS DE LIVROS ---
+// ... (Restante do seu código `app.js` permanece o mesmo) ...
+
+// --- ROTAS DE LIVROS (com validações) ---
 app.get('/livros/novo', requireLogin, (req, res) => {
     res.render('pages/livros_novo', { title: 'Novo Livro', hideSidebar: true, erro: null, valores: {} });
 });
@@ -113,7 +121,7 @@ app.post('/livros/editar', requireLogin, (req, res) => {
     }
 });
 
-// --- ROTAS DE LEITORES ---
+// --- ROTAS DE LEITORES (com validações avançadas) ---
 app.get('/leitores/novo', requireLogin, (req, res) => {
     res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true, erro: null, valores: {} });
 });
@@ -123,7 +131,6 @@ app.post('/leitores/novo', requireLogin, (req, res) => {
     const cpfLimpo = (cpfInput || '').replace(/\D/g, '');
     const celularLimpo = (celularInput || '').replace(/\D/g, '');
 
-    // ARQUITETO: Validações avançadas para garantir a integridade dos dados.
     if (!cpf.isValid(cpfLimpo)) {
         return res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true, erro: 'O CPF fornecido é inválido.', valores: req.body });
     }
@@ -153,7 +160,6 @@ app.post('/leitores/editar', requireLogin, (req, res) => {
     const cpfLimpo = (cpfInput || '').replace(/\D/g, '');
     const celularLimpo = (celularInput || '').replace(/\D/g, '');
 
-    // ARQUITETO: Validações avançadas para a rota de edição.
     if (!cpf.isValid(cpfLimpo)) {
         return res.status(400).json({ success: false, message: 'O CPF fornecido é inválido.' });
     }
@@ -184,7 +190,7 @@ app.post('/leitores/editar', requireLogin, (req, res) => {
     }
 });
 
-// --- ROTAS DE EMPRÉSTIMOS ---
+// --- ROTAS DE EMPRÉSTIMOS (com validações) ---
 app.get('/emprestimos/novo', requireLogin, (req, res) => {
     const livrosDisponiveis = livros.filter(l => l.disponivel > 0 && l.status === 'ativo');
     res.render('pages/emprestimos_novo', { title: 'Novo Empréstimo', hideSidebar: true, livros: livrosDisponiveis, leitores, erro: null, valores: {} });

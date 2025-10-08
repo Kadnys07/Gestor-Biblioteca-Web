@@ -36,7 +36,7 @@ let livros = [
     { id: 1, titulo: "O Senhor dos Anéis", autor: "J.R.R. Tolkien", genero: "Fantasia", disponivel: 3, status: 'ativo' },
     { id: 2, titulo: "1984", autor: "George Orwell", genero: "Distopia", disponivel: 5, status: 'ativo' },
     { id: 3, titulo: "Dom Casmurro", autor: "Machado de Assis", genero: "Romance", disponivel: 0, status: 'ativo' }
-];
+];  
 let leitores = [
     { id: 1, nome: "Ana Silva", cpf: "11122233344", nascimento: "1990-01-01", celular: "11912345678", email: "ana.silva@email.com", cep: "12345678", endereco: "Rua das Flores, 123" }
 ];

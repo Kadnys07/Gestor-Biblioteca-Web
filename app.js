@@ -5,8 +5,7 @@ const session = require('express-session');
 const PDFDocument = require('pdfkit');
 const { cpf } = require('cpf-cnpj-validator');
 const validator = require('validator');
-// ARQUITETO: Bcrypt temporariamente removido para simplificar o diagnóstico de login.
-// const bcrypt = require('bcrypt');
+// const bcrypt = require('bcrypt'); // Mantido comentado conforme última decisão
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,7 +26,6 @@ function calcularIdade(dataNascimento) {
 // --- DADOS E IDs ---
 const adminUser = {
     email: 'gestor@biblioteca.com',
-    // ARQUITETO: Senha em texto plano para depuração. Será substituída por hash na fase de BD.
     password: 'gestor123'
 };
 
@@ -36,7 +34,7 @@ let livros = [
     { id: 1, titulo: "O Senhor dos Anéis", autor: "J.R.R. Tolkien", genero: "Fantasia", disponivel: 3, status: 'ativo' },
     { id: 2, titulo: "1984", autor: "George Orwell", genero: "Distopia", disponivel: 5, status: 'ativo' },
     { id: 3, titulo: "Dom Casmurro", autor: "Machado de Assis", genero: "Romance", disponivel: 0, status: 'ativo' }
-];  
+];
 let leitores = [
     { id: 1, nome: "Ana Silva", cpf: "11122233344", nascimento: "1990-01-01", celular: "11912345678", email: "ana.silva@email.com", cep: "12345678", endereco: "Rua das Flores, 123" }
 ];
@@ -66,30 +64,18 @@ function requireLogin(req, res, next) {
 app.get('/', (req, res) => res.redirect('/login'));
 app.get('/login', (req, res) => res.render('pages/login', { title: 'Login', erro: null, hideSidebar: true }));
 
-// ARQUITETO: Rota de login simplificada para garantir o funcionamento.
 app.post('/login', async (req, res) => {
     const { email, senha } = req.body;
-
-    console.log('\n--- DIAGNÓSTICO DE TENTATIVA DE LOGIN (SIMPLIFICADO) ---');
-    console.log(`[${new Date().toLocaleTimeString()}] Rota /login foi acionada.`);
-    console.log('Dados recebidos -> Email:', email, '| Senha:', senha);
-    console.log('Dados esperados -> Email:', adminUser.email, '| Senha:', adminUser.password);
-
     if (email && email.toLowerCase() === adminUser.email && senha === adminUser.password) {
-        console.log('-> SUCESSO: Credenciais correspondem. A criar sessão.');
         req.session.logado = true;
         return res.redirect('/home');
-    } else {
-        console.log('-> FALHA: Email ou senha incorretos.');
     }
-
     res.render('pages/login', { title: 'Login', erro: 'Utilizador ou senha inválidos!', hideSidebar: true });
 });
 
 app.get('/logout', (req, res) => { req.session.destroy(() => { res.redirect('/login'); }); });
 app.get('/home', requireLogin, (req, res) => res.render('pages/home', { title: 'Home', hideSidebar: false }));
 
-// ... (Restante do seu código `app.js` permanece o mesmo) ...
 
 // --- ROTAS DE LIVROS (com validações) ---
 app.get('/livros/novo', requireLogin, (req, res) => {
@@ -216,29 +202,46 @@ app.post('/emprestimos/novo', requireLogin, (req, res) => {
 });
 
 app.post('/emprestimos/editar', requireLogin, (req, res) => {
-    const { id, devolucao, status } = req.body;
+    const { id, devolucao, status: novoStatus } = req.body; // Renomeado para novoStatus para clareza
     const hoje = new Date().toISOString().split('T')[0];
-    if (devolucao < hoje && status === 'pendente') {
+    if (devolucao < hoje && novoStatus === 'pendente') {
         return res.status(400).json({ success: false, message: 'A data de devolução deve ser uma data no futuro.' });
     }
     const emprestimoIndex = emprestimos.findIndex(e => e.id == id);
-    if (emprestimoIndex !== -1) {
-        const emprestimo = emprestimos[emprestimoIndex];
-        const estavaPendente = emprestimo.status === 'pendente';
-        const virouDevolido = status === 'devolvido';
-        const livro = livros.find(l => l.id == emprestimo.livroId);
-        if (estavaPendente && virouDevolido && livro) {
+    if (emprestimoIndex === -1) {
+        return res.status(404).json({ success: false, message: 'Empréstimo não encontrado.' });
+    }
+
+    // ARQUITETO: Lógica de transição de estado para garantir a integridade do inventário.
+    const emprestimo = emprestimos[emprestimoIndex];
+    const statusAnterior = emprestimo.status;
+    const livro = livros.find(l => l.id == emprestimo.livroId);
+
+    if (livro) {
+        // Cenário 1: Um empréstimo PENDENTE foi marcado como DEVOLVIDO.
+        if (statusAnterior === 'pendente' && novoStatus === 'devolvido') {
             livro.disponivel++;
         }
-        emprestimo.devolucao = devolucao;
-        emprestimo.status = status;
-        const leitor = leitores.find(l => l.id == emprestimo.leitorId);
-        const emprestimoInfo = { ...emprestimo, livro: livro ? livro.titulo : 'Excluído', leitor: leitor ? leitor.nome : 'Excluído', cpf: leitor ? leitor.cpf : 'N/A' };
-        res.json({ success: true, message: 'Empréstimo atualizado com sucesso!', data: emprestimoInfo });
-    } else {
-        res.status(404).json({ success: false, message: 'Empréstimo não encontrado.' });
+        // Cenário 2: Um empréstimo DEVOLVIDO foi (incorretamente) revertido para PENDENTE.
+        else if (statusAnterior === 'devolvido' && novoStatus === 'pendente') {
+            // Apenas decrementa se houver livros disponíveis para evitar contagem negativa.
+            if (livro.disponivel > 0) {
+                livro.disponivel--;
+            } else {
+                // Se não há livros, não podemos reverter o status.
+                return res.status(400).json({ success: false, message: 'Ação inválida. O livro não tem cópias disponíveis para reverter o empréstimo.' });
+            }
+        }
     }
+
+    emprestimo.devolucao = devolucao;
+    emprestimo.status = novoStatus;
+
+    const leitor = leitores.find(l => l.id == emprestimo.leitorId);
+    const emprestimoInfo = { ...emprestimo, livro: livro ? livro.titulo : 'Excluído', leitor: leitor ? leitor.nome : 'Excluído', cpf: leitor ? leitor.cpf : 'N/A' };
+    res.json({ success: true, message: 'Empréstimo atualizado com sucesso!', data: emprestimoInfo });
 });
+
 
 // --- ROTAS DE LISTAGEM E RELATÓRIOS ---
 app.get('/livros', requireLogin, (req, res) => {

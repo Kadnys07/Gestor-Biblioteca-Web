@@ -70,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(err => {
                 console.error('Erro ao editar livro:', err);
-                // ARQUITETO: Substituído alert por feedback no modal.
                 showModalError('edit-livro-error', err.message || 'Ocorreu um erro de comunicação.');
             });
         });
@@ -103,7 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(err => {
                 console.error('Erro ao editar leitor:', err);
-                // ARQUITETO: Substituído alert por feedback no modal.
+               
+                
                 showModalError('edit-leitor-error', err.message || 'Ocorreu um erro de comunicação.');
             });
         });

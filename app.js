@@ -5,7 +5,6 @@ const session = require('express-session');
 const PDFDocument = require('pdfkit');
 const { cpf } = require('cpf-cnpj-validator');
 const validator = require('validator');
-// const bcrypt = require('bcrypt'); // Mantido comentado conforme última decisão
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,7 +22,7 @@ function calcularIdade(dataNascimento) {
     return idade;
 }
 
-// --- DADOS E IDs ---
+
 const adminUser = {
     email: 'gestor@biblioteca.com',
     password: 'gestor123'

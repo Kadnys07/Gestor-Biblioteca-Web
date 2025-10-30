@@ -3,15 +3,12 @@
 
     let pool;
 
-    // A Vercel/Supabase injeta esta variável 'POSTGRES_URL' automaticamente
-    if (process.env.POSTGRES_URL) {
+  if (process.env.POSTGRES_URL) {
         // --- Bloco de Produção (Vercel) ---
         console.log("A conectar à base de dados de Produção (Vercel/Supabase)..."); // Log para depuração
         pool = new Pool({
             connectionString: process.env.POSTGRES_URL,
-            ssl: {
-                rejectUnauthorized: false 
-            }
+            ssl: false // ARQUITETO: Desliga explicitamente o SSL para corresponder ao Supabase
         });
     } else {
         

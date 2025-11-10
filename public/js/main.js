@@ -131,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(err => {
                 console.error('Erro ao editar empréstimo:', err);
-                // ARQUITETO: Substituído alert por feedback no modal.
                 showModalError('edit-emprestimo-error', err.message || 'Ocorreu um erro de comunicação.');
             });
         });

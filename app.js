@@ -5,11 +5,7 @@ const session = require('express-session');
 const PDFDocument = require('pdfkit');
 const { cpf } = require('cpf-cnpj-validator');
 const validator = require('validator');
-
-// ARQUITETO: Importações Adicionadas
-// Importa o pool de conexão que criámos (config/db.js)
 const pool = require('./config/db');
-// Importa o bcrypt para comparar as senhas (package.json)
 const bcrypt = require('bcrypt');
 
 const app = express();
@@ -28,9 +24,6 @@ function calcularIdade(dataNascimento) {
     return idade;
 }
 
-// ARQUITETO: Todos os dados mockados (adminUser, livros, leitores, emprestimos) foram removidos.
-// O banco de dados é agora a nossa única fonte da verdade.
-
 // --- CONFIGURAÇÃO E MIDDLEWARES ---
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -41,7 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({ secret: 'biblioteca-secret', resave: false, saveUninitialized: false }));
 
-// ARQUITETO (CORREÇÃO): Função de formatação de data melhorada para aceitar objetos Date do banco
+// Função de formatação de data melhorada para aceitar objetos Date do banco
 // OU strings já no formato YYYY-MM-DD. Garante que o front-end sempre receba DD/MM/YYYY.
 app.locals.formatarData = function(data) {
     if (!data) return '';
@@ -51,7 +44,7 @@ app.locals.formatarData = function(data) {
     } else if (typeof data === 'string' && data.includes('-')) {
         dataString = data.split('T')[0]; // Pega apenas a parte YYYY-MM-DD se já for string
     } else {
-        return ''; // Retorna vazio se o formato for inválido
+        return ''; 
     }
     const [ano, mes, dia] = dataString.split('-');
     return `${dia}/${mes}/${ano}`;
@@ -65,7 +58,7 @@ function requireLogin(req, res, next) {
 app.get('/', (req, res) => res.redirect('/login'));
 app.get('/login', (req, res) => res.render('pages/login', { title: 'Login', erro: null, hideSidebar: true }));
 
-// ARQUITETO: Rota de Login refatorada para usar a tabela 'gestores' e bcrypt
+// Rota de Login 
 app.post('/login', async (req, res) => {
     const { email, senha } = req.body;
     try {
@@ -94,14 +87,14 @@ app.get('/logout', (req, res) => { req.session.destroy(() => { res.redirect('/lo
 app.get('/home', requireLogin, (req, res) => res.render('pages/home', { title: 'Home', hideSidebar: false }));
 
 
-// --- ROTAS DE LIVROS (com validações) ---
+// --- ROTAS DE LIVROS  ---
 app.get('/livros/novo', requireLogin, (req, res) => {
     res.render('pages/livros_novo', { title: 'Novo Livro', hideSidebar: true, erro: null, valores: {} });
 });
 
-// ARQUITETO: Rota refatorada para usar INSERT na tabela 'livros'
+// Rota refatorada para usar INSERT na tabela 'livros'
 app.post('/livros/novo', requireLogin, async (req, res) => {
-    // ARQUITETO (CORREÇÃO): Usa 'quantidade_disponivel' para inserir no banco
+    // Usa 'quantidade_disponivel' para inserir no banco
     const { titulo, autor, genero, disponivel: quantidadeInput } = req.body;
     const quantidade = Number(quantidadeInput);
 
@@ -114,7 +107,7 @@ app.post('/livros/novo', requireLogin, async (req, res) => {
             INSERT INTO livros (titulo, autor, genero, quantidade_disponivel, status)
             VALUES ($1, $2, $3, $4, 'ativo')
         `;
-        // ARQUITETO (CORREÇÃO): Passa 'quantidade' para a coluna 'quantidade_disponivel'
+        // Passa 'quantidade' para a coluna 'quantidade_disponivel'
         await pool.query(query, [titulo, autor, genero, quantidade]);
         res.redirect('/livros');
     } catch (err) {
@@ -123,9 +116,9 @@ app.post('/livros/novo', requireLogin, async (req, res) => {
     }
 });
 
-// ARQUITETO: Rota refatorada para usar UPDATE na tabela 'livros'
+// Rota refatorada para usar UPDATE na tabela 'livros'
 app.post('/livros/editar', requireLogin, async (req, res) => {
-    // ARQUITETO (CORREÇÃO): Renomeia 'disponivel' do body para 'quantidadeInput' para clareza
+    // Renomeia 'disponivel' do body para 'quantidadeInput' para clareza
     const { id, titulo, autor, genero, disponivel: quantidadeInput } = req.body;
     const quantidade = Number(quantidadeInput);
 
@@ -134,14 +127,13 @@ app.post('/livros/editar', requireLogin, async (req, res) => {
     }
 
     try {
-        // ARQUITETO (CORREÇÃO): Atualiza a coluna 'quantidade_disponivel' no banco
         const query = `
             UPDATE livros
             SET titulo = $1, autor = $2, genero = $3, quantidade_disponivel = $4
             WHERE id = $5
             RETURNING id, titulo, autor, genero, quantidade_disponivel AS "disponivel"
         `;
-        // ARQUITETO (CORREÇÃO): O 'RETURNING' usa o Alias AS "disponivel" para o front-end
+        // O 'RETURNING' usa o Alias AS "disponivel" para o front-end
         const result = await pool.query(query, [titulo, autor, genero, quantidade, id]);
 
         if (result.rowCount === 0) {
@@ -160,7 +152,7 @@ app.get('/leitores/novo', requireLogin, (req, res) => {
     res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true, erro: null, valores: {} });
 });
 
-// ARQUITETO: Rota refatorada para usar INSERT na tabela 'leitores' com tratamento de erro UNIQUE
+// Rota refatorada para usar INSERT na tabela 'leitores' com tratamento de erro UNIQUE
 app.post('/leitores/novo', requireLogin, async (req, res) => {
     const { nome, cpf: cpfInput, nascimento, celular: celularInput, email, cep, endereco } = req.body;
     const cpfLimpo = (cpfInput || '').replace(/\D/g, '');
@@ -191,7 +183,7 @@ app.post('/leitores/novo', requireLogin, async (req, res) => {
     }
 });
 
-// ARQUITETO: Rota refatorada para usar UPDATE na tabela 'leitores' com tratamento de erro UNIQUE
+// Rota refatorada para usar UPDATE na tabela 'leitores' com tratamento de erro UNIQUE
 app.post('/leitores/editar', requireLogin, async (req, res) => {
     const { id, nome, cpf: cpfInput, nascimento, celular: celularInput, email, cep, endereco } = req.body;
     const cpfLimpo = (cpfInput || '').replace(/\D/g, '');
@@ -213,7 +205,7 @@ app.post('/leitores/editar', requireLogin, async (req, res) => {
             RETURNING id, nome, cpf, email, celular, cep, endereco,
                       TO_CHAR(nascimento, 'YYYY-MM-DD') AS "nascimento"
         `;
-        // ARQUITETO (CORREÇÃO): O 'RETURNING' formata a data para o front-end
+        // O 'RETURNING' formata a data para o front-end
         const values = [nome, cpfLimpo, nascimento, celularLimpo, email.toLowerCase(), (cep || '').replace(/\D/g, ''), endereco, id];
         const result = await pool.query(query, values);
 
@@ -232,10 +224,9 @@ app.post('/leitores/editar', requireLogin, async (req, res) => {
 
 // --- ROTAS DE EMPRÉSTIMOS (com validações) ---
 
-// ARQUITETO: Rota refatorada para buscar livros e leitores do banco
 app.get('/emprestimos/novo', requireLogin, async (req, res) => {
     try {
-        // ARQUITETO (CORREÇÃO): Busca livros usando o Alias AS "disponivel"
+        //Busca livros usando o Alias AS "disponivel"
         const livrosQuery = `
             SELECT id, titulo, quantidade_disponivel AS "disponivel" 
             FROM livros 
@@ -258,12 +249,12 @@ app.get('/emprestimos/novo', requireLogin, async (req, res) => {
     }
 });
 
-// ARQUITETO: Rota refatorada para usar uma TRANSAÇÃO de banco de dados
+// Rota refatorada para usar uma TRANSAÇÃO de banco de dados
 app.post('/emprestimos/novo', requireLogin, async (req, res) => {
     const { livroId, leitorId, devolucao } = req.body;
     const hoje = new Date().toISOString().split('T')[0];
 
-    // ARQUITETO (CORREÇÃO): Função auxiliar para buscar dados em caso de erro
+    //Função auxiliar para buscar dados em caso de erro
     const buscarDadosParaForm = async () => {
         const livrosQuery = `
             SELECT id, titulo, quantidade_disponivel AS "disponivel" 
@@ -318,7 +309,7 @@ app.post('/emprestimos/novo', requireLogin, async (req, res) => {
     }
 });
 
-// ARQUITETO: Rota refatorada para usar uma TRANSAÇÃO e lógica de inventário
+//Rota refatorada para usar uma TRANSAÇÃO e lógica de inventário
 app.post('/emprestimos/editar', requireLogin, async (req, res) => {
     const { id, devolucao, status: novoStatus } = req.body;
     const hoje = new Date().toISOString().split('T')[0];
@@ -378,10 +369,10 @@ app.post('/emprestimos/editar', requireLogin, async (req, res) => {
 
 // --- ROTAS DE LISTAGEM E RELATÓRIOS ---
 
-// ARQUITETO: Rota refatorada para usar SELECT da tabela 'livros'
+//Rota refatorada para usar SELECT da tabela 'livros'
 app.get('/livros', requireLogin, async (req, res) => {
     try {
-        // ARQUITETO (CORREÇÃO): Usa Alias AS "disponivel" para a view
+        //Usa Alias AS "disponivel" para a view
         const query = `
             SELECT id, titulo, autor, genero, status,
                    quantidade_disponivel AS "disponivel"
@@ -396,10 +387,10 @@ app.get('/livros', requireLogin, async (req, res) => {
     }
 });
 
-// ARQUITETO: Rota refatorada para usar SELECT da tabela 'leitores'
+// Rota refatorada para usar SELECT da tabela 'leitores'
 app.get('/leitores', requireLogin, async (req, res) => {
     try {
-        // ARQUITETO (CORREÇÃO): Formata 'nascimento' para YYYY-MM-DD para o modal
+        //Formata 'nascimento' para YYYY-MM-DD para o modal
         const query = `
             SELECT id, nome, cpf, email, celular, cep, endereco,
                    TO_CHAR(nascimento, 'YYYY-MM-DD') AS "nascimento"
@@ -414,10 +405,10 @@ app.get('/leitores', requireLogin, async (req, res) => {
     }
 });
 
-// ARQUITETO: Rota refatorada para usar um JOIN e buscar dados relacionados
+// Rota refatorada para usar um JOIN e buscar dados relacionados
 app.get('/emprestimos', requireLogin, async (req, res) => {
     try {
-        // ARQUITETO (CORREÇÃO): Formata as datas para YYYY-MM-DD para o modal
+        // Formata as datas para YYYY-MM-DD para o modal
         const query = `
             SELECT e.id, e.livro_id, e.leitor_id, e.status,
                    TO_CHAR(e.data_emprestimo, 'YYYY-MM-DD') AS "dataInicio",
@@ -438,7 +429,7 @@ app.get('/emprestimos', requireLogin, async (req, res) => {
     }
 });
 
-// ARQUITETO: Rota refatorada para usar SELECT COUNT(*) para métricas
+// Rota refatorada para usar SELECT COUNT(*) para métricas
 app.get('/relatorios', requireLogin, async (req, res) => {
     try {
         const leitoresResult = await pool.query("SELECT COUNT(*) FROM leitores");
@@ -454,7 +445,7 @@ app.get('/relatorios', requireLogin, async (req, res) => {
     }
 });
 
-// ARQUITETO: Rota refatorada para usar JOIN no PDF
+// Rota refatorada para usar JOIN no PDF
 app.get('/relatorios/pdf', requireLogin, async (req, res) => {
     try {
         const query = `

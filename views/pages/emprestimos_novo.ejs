@@ -23,7 +23,7 @@
       </div>
       <div>
         <label for="leitor-select-search" class="block text-sm font-medium text-gray-700">Buscar Leitor por Nome ou CPF</label>
-        <!-- ARQUITETO: Trocado input por select para garantir a seleção única e correta semântica. -->
+        <!-- Trocado input por select para garantir a seleção única e correta semântica. -->
         <select id="leitor-select-search" name="leitorId" required placeholder="Digite para buscar..." autocomplete="off">
           <option value="">Selecione um leitor</option>
         </select>
@@ -40,9 +40,8 @@
   </form>
 </div>
 
-<!-- Script para passar os dados dos leitores para o main.js -->
 <script>
-  // Cria uma variável global que o main.js poderá ler
+  // Variavel global para o main.js
   window.listaDeLeitores = <%- JSON.stringify(leitores.map(leitor => ({
     value: leitor.id,
     text: `${leitor.nome} (CPF: ${leitor.cpf})`

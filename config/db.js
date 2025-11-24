@@ -3,10 +3,10 @@ const { Pool } = require('pg');
 
     let pool;
 
-    // A Vercel/Supabase injeta esta variável 'POSTGRES_URL' automaticamente
+    // A Vercel/railway injeta esta variável 'POSTGRES_URL' automaticamente
     if (process.env.POSTGRES_URL) {
         // --- Bloco de Produção (Vercel) ---
-        console.log("A conectar à base de dados de Produção (Vercel/Supabase) COM SSL...");
+        console.log("A conectar à base de dados de Produção (Vercel/Railway) COM SSL...");
         
         pool = new Pool({
 

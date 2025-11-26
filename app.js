@@ -147,7 +147,7 @@ app.post('/livros/editar', requireLogin, async (req, res) => {
     }
 });
 
-// --- ROTAS DE LEITORES (com validações avançadas) ---
+// --- ROTAS DE LEITORES (com validações) ---
 app.get('/leitores/novo', requireLogin, (req, res) => {
     res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true, erro: null, valores: {} });
 });
@@ -158,12 +158,20 @@ app.post('/leitores/novo', requireLogin, async (req, res) => {
     const cpfLimpo = (cpfInput || '').replace(/\D/g, '');
     const celularLimpo = (celularInput || '').replace(/\D/g, '');
 
-    // --- MANTÉM AS SUAS VALIDAÇÕES DE BACK-END ---
-    if (!cpf.isValid(cpfLimpo)) { /*...*/ }
-    if (!validator.isEmail(email)) { /*...*/ }
-    if (!validator.isMobilePhone(celularLimpo, 'pt-BR')) { /*...*/ }
+    // --- VALIDAÇÕES ---
+    if (!cpf.isValid(cpfLimpo)) {
+        return res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true, erro: 'O CPF fornecido é inválido.', valores: req.body });
+    }
+    if (!validator.isEmail(email)) {
+        return res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true, erro: 'O formato do e-mail é inválido.', valores: req.body });
+    }
+    if (!validator.isMobilePhone(celularLimpo, 'pt-BR')) {
+        return res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true, erro: 'O número de telemóvel é inválido. Utilize o formato com DDD (ex: 11912345678).', valores: req.body });
+    }
     const idade = calcularIdade(nascimento);
-    if (!nascimento || idade < 5 || idade > 120) { /*...*/ }
+    if (!nascimento || idade < 5 || idade > 120) {
+        return res.render('pages/leitores_novo', { title: 'Novo Leitor', hideSidebar: true, erro: 'Data de nascimento inválida. O leitor deve ter entre 5 e 120 anos.', valores: req.body });
+    }
 
     // --- LÓGICA DE BANCO DE DADOS ---
     try {
@@ -178,8 +186,23 @@ app.post('/leitores/novo', requireLogin, async (req, res) => {
 
     } catch (err) {
         console.error("Erro ao salvar leitor:", err);
-        if (err.code === '23505') { /*...*/ } // Tratamento de duplicidade
-        res.status(500).render('pages/leitores_novo', { /*...*/ });
+        let mensagemErro = 'Erro ao salvar o leitor. Tente novamente.';
+        
+        // Tratamento de duplicidade (Erro 23505 do Postgres)
+        if (err.code === '23505') { 
+            if (err.detail.includes('cpf')) {
+                mensagemErro = 'Este CPF já está cadastrado.';
+            } else if (err.detail.includes('email')) {
+                mensagemErro = 'Este e-mail já está cadastrado.';
+            }
+        }
+        
+        res.status(500).render('pages/leitores_novo', { 
+            title: 'Novo Leitor', 
+            hideSidebar: true, 
+            erro: mensagemErro, 
+            valores: req.body 
+        });
     }
 });
 
@@ -189,12 +212,20 @@ app.post('/leitores/editar', requireLogin, async (req, res) => {
     const cpfLimpo = (cpfInput || '').replace(/\D/g, '');
     const celularLimpo = (celularInput || '').replace(/\D/g, '');
 
-    // --- MANTÉM AS SUAS VALIDAÇÕES ---
-    if (!cpf.isValid(cpfLimpo)) { /*...*/ }
-    if (!validator.isEmail(email)) { /*...*/ }
-    if (!validator.isMobilePhone(celularLimpo, 'pt-BR')) { /*...*/ }
+    // --- VALIDAÇÕES ---
+    if (!cpf.isValid(cpfLimpo)) {
+        return res.status(400).json({ success: false, message: 'O CPF fornecido é inválido.' });
+    }
+    if (!validator.isEmail(email)) {
+        return res.status(400).json({ success: false, message: 'O formato do e-mail é inválido.' });
+    }
+    if (!validator.isMobilePhone(celularLimpo, 'pt-BR')) {
+        return res.status(400).json({ success: false, message: 'O número de telemóvel é inválido. Utilize o formato com DDD.' });
+    }
     const idade = calcularIdade(nascimento);
-    if (!nascimento || idade < 5 || idade > 120) { /*...*/ }
+    if (!nascimento || idade < 5 || idade > 120) {
+        return res.status(400).json({ success: false, message: 'Data de nascimento inválida. O leitor deve ter entre 5 e 120 anos.' });
+    }
 
     // --- LÓGICA DE BANCO DE DADOS ---
     try {
@@ -217,8 +248,16 @@ app.post('/leitores/editar', requireLogin, async (req, res) => {
 
     } catch (err) {
         console.error("Erro ao editar leitor:", err);
-        if (err.code === '23505') { /*...*/ } // Tratamento de duplicidade
-        res.status(500).json({ success: false, message: 'Erro interno ao atualizar o leitor.' });
+        let mensagemErro = 'Erro interno ao atualizar o leitor.';
+        
+        if (err.code === '23505') { 
+            if (err.detail.includes('cpf')) {
+                mensagemErro = 'Este CPF já pertence a outro leitor.';
+            } else if (err.detail.includes('email')) {
+                mensagemErro = 'Este e-mail já pertence a outro leitor.';
+            }
+        }
+        res.status(400).json({ success: false, message: mensagemErro });
     }
 });
 
@@ -513,4 +552,3 @@ app.get('/relatorios/pdf', requireLogin, async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Servidor a ser executado em http://localhost:${PORT}`);
 });
-
